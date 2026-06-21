@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ふみ勉！本日のタスク管理</title>
+    <style>
+        :root {
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --accent-pink: #ff6b81;
+            --accent-blue: #4ea8de;
+            --accent-yellow: #ffd166;
+            --accent-green: #06d6a0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 画面全体のコンテナ */
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        /* パネル共通スタイル */
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            border: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* タイマーセクション */
+        .timer-card {
+            border-color: var(--accent-blue);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .timer-circle {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-blue) 360deg, #edeef2 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .timer-inner {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        .timer-controls button {
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--accent-blue);
+            color: white;
+            cursor: pointer;
+            margin: 4px;
+            box-shadow: 0 4px 10px rgba(78, 168, 222, 0.3);
+        }
+
+        .timer-controls button:active {
+            transform: scale(0.95);
+        }
+
+        .alarm-inputs {
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .alarm-inputs div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .alarm-inputs input {
+            font-size: 18px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            text-align: center;
+        }
+        .input-time { width: 110px; }
+        .input-min { width: 60px; }
+
+        /* ガチャ・キャラクターセクション */
+        .gacha-card {
+            border-color: var(--accent-pink);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .char-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent-pink);
+            margin: 15px 0;
+            min-height: 40px;
+            padding: 10px;
+            border-radius: 12px;
+            background: #fff0f3;
+            width: 100%;
+        }
+
+        .speech-bubble {
+            background: #f1f1f1;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 10px;
+            font-size: 18px;
+            position: relative;
+            width: 100%;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* タスクセクション */
+        .task-card {
+            border-color: var(--accent-yellow);
+        }
+
+        .task-list {
+            list-style: none;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 22px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid #eee;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .task-item:active {
+            transform: scale(0.98);
+        }
+
+        .task-item.completed {
+            background: #e8f5e9;
+            border-color: var(--accent-green);
+            color: #81c784;
+            text-decoration: line-through;
+            animation: pop 0.3s ease-in-out;
+        }
+
+        .task-checkbox {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 3px solid #ccc;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .completed .task-checkbox {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .completed .task-checkbox::after {
+            content: "✓";
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* データ入力用隠しフォーム＆リマインダー連携 */
+        .import-section {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .btn-ios-reminder {
+            align-self: flex-start;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
+        }
+
+        .import-toggle {
+            align-self: flex-start;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            text-align: left;
+        }
+        
+        .import-area {
+            display: none;
+            margin-top: 4px;
+        }
+        
+        .import-area input {
+            width: 70%;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        
+        .import-area button {
+            padding: 8px 12px;
+            font-size: 16px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+
+        /* リンクランチャーセクション */
+        .launcher-card {
+            border-color: var(--accent-green);
+        }
+
+        .launcher-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .launcher-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 18px;
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .launcher-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-ecc { background-color: #1a3a5f; }          
+        .btn-ytm { background-color: #990000; }          
+        .btn-gemini-eng { background-color: #ff9f43; }   
+        .btn-gemini-his { background-color: #8B4513; }   
+        .btn-gemini-math { background-color: #3b82f6; }  
+        .btn-gemini-sci { background-color: #10b981; }   
+        .btn-gemini-soc { background-color: #8b5cf6; }   
+
+        .launcher-btn span {
+            font-size: 12px;
+            font-weight: normal;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* アニメーション */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 129, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 107, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 129, 0); }
+        }
+
+        .alarm-active {
+            animation: pulse 1.5s infinite;
+            background-color: #ffe5e9 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card timer-card">
+            <h2>⏱️ タイマー / アラーム</h2>
+            <div class="alarm-inputs">
+                <div>
+                    <label>指定時刻通知: </label>
+                    <input type="time" id="alarmTime" class="input-time" value="17:00">
+                </div>
+                <div>
+                    <label>カウントダウン: </label>
+                    <input type="number" id="timerDuration" class="input-min" value="25" min="1" max="180"> 分
+                </div>
+            </div>
+            <div class="timer-circle" id="timerCircle">
+                <div class="timer-inner" id="timerText">25:00</div>
+            </div>
+            <div class="timer-controls">
+                <button id="startTimerBtn" onclick="toggleTimer()">カウントダウン開始</button>
+                <button id="resetTimerBtn" style="background-color:#9aa5b1;" onclick="resetTimer()">リセット</button>
+                <button id="stopAlarmBtn" style="display:none; background-color:var(--accent-pink);" onclick="stopAlarm()">アラームを止めてガチャ！</button>
+            </div>
+        </div>
+
+        <div class="card gacha-card" id="gachaCard">
+            <h2>🎁 本日の担当キャラクター</h2>
+            <div class="char-display" id="charName">タイマー停止で出現！</div>
+            <div class="speech-bubble" id="charSpeech">ここにキャラクターのセリフが表示されて、iPadが喋るよ！</div>
+        </div>
+
+        <div class="card task-card full-width">
+            <h2>📝 今日の「ふみ勉」タスク</h2>
+            <ul class="task-list" id="taskList">
+                </ul>
+
+            <div class="import-section">
+                <a href="x-apple-reminders://" class="btn-ios-reminder">🔔 iPadのリマインダーを開く</a>
+                <button class="import-toggle" onclick="toggleImportArea()">＋タスクを手動で一括登録・修正する</button>
+                <div class="import-area" id="importArea">
+                    <input type="text" id="csvTasks" placeholder="算数プリント,漢字,歴史（カンマで区切ってね）">
+                    <button onclick="importTasksFromInput()">登録</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card launcher-card full-width">
+            <h2>🚀 クイックランチャー</h2>
+            <div class="launcher-grid">
+                <a href="https://pt.eccjrst.jp/App_D/StudentTop/Init?fid=EJC3&tab=0.716799565459043" target="ecc_tab" class="launcher-btn btn-ecc">
+                    ECCストリーミング
+                    <span>上品なネイビー</span>
+                </a>
+                <a href="https://music.youtube.com/" target="_blank" class="launcher-btn btn-ytm">
+                    YouTube Music
+                    <span>スタイリッシュ赤黒</span>
+                </a>
+
+                <a href="https://gemini.google.com/gem/1-WLKowbJCI4zq0J2JTd3Z-mVU2tuWRtq?usp=sharing" target="_blank" class="launcher-btn btn-gemini-eng">
+                    英会話の先生の部屋
+                    <span>パステルオレンジ</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1DWIgUVzzGQ4-7jaC4akMBiQ11-rLr3u-?usp=sharing" target="_blank" class="launcher-btn btn-gemini-his">
+                    歴史の先生の部屋
+                    <span>知的なブラウン</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1vLfju_wGTGxXrzVQO4KKvdDyWTvQodYm?usp=sharing" target="_blank" class="launcher-btn btn-gemini-math">
+                    算数の先生の部屋
+                    <span>論理のブルー</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1bvkGwoP6utwHsjvqXZ9_jullNBgHtjXC?usp=sharing" target="_blank" class="launcher-btn btn-gemini-sci">
+                    理科の先生の部屋
+                    <span>探究のグリーン</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1xEYBviOvy9DaHcFSqYCbom2dr2ZtuIW0?usp=sharing" target="_blank" class="launcher-btn btn-gemini-soc">
+                    ４年社会の先生の部屋
+                    <span>考察のパープル</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const characterList = [
+            { name: "ツンデレな幼馴染風", speech: "べ、別にアンタの心配なんてしてないんだからね！でも…タスクが残ってるなら、さっさと終わらせなさいよ！今日のメニューはこれよ！：", pitch: 1.2, rate: 1.1 },
+            { name: "超スパルタ塾講師風", speech: "受験は甘くありません！さあ、今日も1点をもぎ取るために全力で集中しますよ！本日のタスクを読み上げます。起立、注目！：", pitch: 0.9, rate: 1.2 },
+            { name: "戦国武将風", speech: "いざ出陣じゃーッ！今日の試練を乗り越え、天下統一の道を突き進むのじゃ！本日の軍令を伝える！：", pitch: 0.7, rate: 0.9 },
+            { name: "博多弁の可愛い先輩風", speech: "今日もいっしょに勉強がんばろ？がんばるキミのこと、ずっと応援しとるけんね。今日のやること、教えるね！：", pitch: 1.1, rate: 1.0 },
+            { name: "偉そうなイエネコ風", speech: "ふにゃ〜あ。人間よ、我の気が変わらぬうちにこれを片付けるが良い。今日の仕事ニャ：", pitch: 1.3, rate: 0.9 },
+            { name: "上品なお嬢様風", speech: "ごきげんよう。本日も素晴らしい学問の時間を共に過ごしましょう。それでは、本日の課題でございます：", pitch: 1.1, rate: 1.0 }
+        ];
+
+        let audioCtx = null;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+        
+        function playSound(type) {
+            initAudio(); 
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'alarm') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        let alarmInterval = null;
+        let countdownInterval = null;
+        let isTimerRunning = false;
+        let timeLeft = 25 * 60; 
+        let totalConfiguredTime = 25 * 60;
+
+        // 初期表示の設定
+        document.getElementById('timerDuration').addEventListener('change', function() {
+            if(!isTimerRunning) {
+                resetTimerDisplayFromInput();
+            }
+        });
+
+        function resetTimerDisplayFromInput() {
+            const m = parseInt(document.getElementById('timerDuration').value) || 25;
+            timeLeft = m * 60;
+            totalConfiguredTime = m * 60;
+            updateTimerDisplay();
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            const currentHours = String(now.getHours()).padStart(2, '0');
+            const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+            const currentTimeStr = `${currentHours}:${currentMinutes}`;
+            
+            const targetTimeStr = document.getElementById('alarmTime').value;
+            
+            if (currentTimeStr === targetTimeStr && !alarmInterval && now.getSeconds() === 0) {
+                triggerAlarm();
+            }
+        }, 1000);
+
+        function toggleTimer() {
+            initAudio(); 
+            const btn = document.getElementById('startTimerBtn');
+            if (isTimerRunning) {
+                clearInterval(countdownInterval);
+                btn.innerText = "カウントダウン再開";
+                isTimerRunning = false;
+            } else {
+                if (timeLeft === totalConfiguredTime) {
+                    // 開始時にフォームから最新の分数を取り込む
+                    const m = parseInt(document.getElementById('timerDuration').value) || 25;
+                    timeLeft = m * 60;
+                    totalConfiguredTime = m * 60;
+                }
+                isTimerRunning = true;
+                btn.innerText = "一時停止";
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        triggerAlarm();
+                        resetTimerDisplayFromInput();
+                        btn.innerText = "カウントダウン開始";
+                        isTimerRunning = false;
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(countdownInterval);
+            isTimerRunning = false;
+            document.getElementById('startTimerBtn').innerText = "カウントダウン開始";
+            resetTimerDisplayFromInput();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.max(0, Math.floor(timeLeft / 60));
+            const seconds = Math.max(0, timeLeft % 60);
+            document.getElementById('timerText').innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            const percent = totalConfiguredTime > 0 ? (timeLeft / totalConfiguredTime) * 360 : 0;
+            document.getElementById('timerCircle').style.background = `conic-gradient(var(--accent-blue) ${percent}deg, #edeef2 0deg)`;
+        }
+
+        function triggerAlarm() {
+            document.getElementById('gachaCard').classList.add('alarm-active');
+            document.getElementById('stopAlarmBtn').style.display = 'inline-block';
+            if (!alarmInterval) {
+                alarmInterval = setInterval(() => {
+                    playSound('alarm');
+                }, 400);
+            }
+        }
+
+        function stopAlarm() {
+            clearInterval(alarmInterval);
+            alarmInterval = null;
+            document.getElementById('gachaCard').classList.remove('alarm-active');
+            document.getElementById('stopAlarmBtn').style.display = 'none';
+            
+            runGacha();
+        }
+
+        function runGacha() {
+            const randomChar = characterList[Math.floor(Math.random() * characterList.length)];
+            document.getElementById('charName').innerText = `今日の担当：${randomChar.name}`;
+            
+            const activeTasks = Array.from(document.querySelectorAll('.task-item:not(.completed)'))
+                                     .map(item => item.textContent.trim());
+            
+            let speechText = randomChar.speech;
+            if (activeTasks.length > 0) {
+                speechText += activeTasks.join('、と、') + ' です！頑張ってくださいね！';
+            } else {
+                speechText += 'あれれ？今日のタスクは全部終わっているか、まだ登録されていないみたいですよ！素晴らしいですね！';
+            }
+
+            document.getElementById('charSpeech').innerText = speechText;
+
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(speechText);
+            utterance.lang = 'ja-JP';
+            utterance.pitch = randomChar.pitch;
+            utterance.rate = randomChar.rate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ==========================================
+        // タスク管理ロジック
+        // ==========================================
+        let tasks = []; 
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            
+            if (tasks.length === 0 || (tasks.length === 1 && tasks[0] === '')) {
+                list.innerHTML = '<li class="task-item" style="font-size:16px; color:#888; justify-content:center; cursor:default; border:none; background:none; text-align:center;">本日の「ふみ勉」タスクはありません。<br>リマインダーから起動するか、下のボタンから登録してね。</li>';
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                if(!task.trim()) return;
+                const li = document.createElement('li');
+                li.className = 'task-item';
+                li.innerHTML = `<div class="task-checkbox"></div>${task}`;
+                li.onclick = () => {
+                    if (!li.classList.contains('completed')) {
+                        li.classList.add('completed');
+                        playSound('success');
+                    } else {
+                        li.classList.remove('completed');
+                    }
+                };
+                list.appendChild(li);
+            });
+        }
+
+        function loadTasksFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const tasksParam = params.get('tasks');
+            if (tasksParam) {
+                tasks = decodeURIComponent(tasksParam).split(',');
+            }
+            renderTasks();
+        }
+
+        function toggleImportArea() {
+            const area = document.getElementById('importArea');
+            area.style.display = area.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function importTasksFromInput() {
+            const inputVal = document.getElementById('csvTasks').value;
+            if(inputVal) {
+                tasks = inputVal.split(',');
+                renderTasks();
+                toggleImportArea();
+            }
+        }
+
+        window.onload = () => {
+            loadTasksFromURL();
+            resetTimerDisplayFromInput();
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+            }
+        };
+    </script>
+</body>
+</html>
