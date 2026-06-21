@@ -406,10 +406,10 @@
                 </ul>
 
             <div class="import-section">
-                <a href="x-apple-reminders://" class="btn-ios-reminder">🔔 iPadのリマインダーを開く</a>
+                <span style="font-size:13px; color:#888;">✅ タスクの状態はこのiPadに自動保存されます</span>
                 <button class="import-toggle" onclick="toggleImportArea()">＋タスクを手動で一括登録・修正する</button>
                 <div class="import-area" id="importArea">
-                    <input type="text" id="csvTasks" placeholder="算数プリント,漢字,歴史（カンマで区切ってね）">
+                    <input type="text" id="csvTasks" placeholder="算数プリント、漢字、歴史（、でも,でも区切れるよ）">
                     <button onclick="importTasksFromInput()">登録</button>
                 </div>
             </div>
@@ -624,39 +624,79 @@
         // ==========================================
         // タスク管理ロジック
         // ==========================================
-        let tasks = []; 
+        let tasks = []; // 各要素は { text: "算数プリント", done: false }
+        const TASKS_STORAGE_KEY = 'fumiben_tasks_v1';
+
+        function saveTasks() {
+            try {
+                localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+            } catch (e) {
+                console.error('タスクの保存に失敗しました', e);
+            }
+        }
+
+        function loadTasks() {
+            try {
+                const saved = localStorage.getItem(TASKS_STORAGE_KEY);
+                if (saved) {
+                    tasks = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('タスクの読み込みに失敗しました', e);
+                tasks = [];
+            }
+        }
 
         function renderTasks() {
             const list = document.getElementById('taskList');
             list.innerHTML = '';
-            
-            if (tasks.length === 0 || (tasks.length === 1 && tasks[0] === '')) {
-                list.innerHTML = '<li class="task-item" style="font-size:16px; color:#888; justify-content:center; cursor:default; border:none; background:none; text-align:center;">本日の「ふみ勉」タスクはありません。<br>リマインダーから起動するか、下のボタンから登録してね。</li>';
+
+            if (tasks.length === 0) {
+                list.innerHTML = '<li class="task-item" style="font-size:16px; color:#888; justify-content:center; cursor:default; border:none; background:none; text-align:center;">本日の「ふみ勉」タスクはありません。<br>下のボタンから登録してね。</li>';
                 return;
             }
 
             tasks.forEach((task, index) => {
-                if(!task.trim()) return;
                 const li = document.createElement('li');
-                li.className = 'task-item';
-                li.innerHTML = `<div class="task-checkbox"></div>${task}`;
-                li.onclick = () => {
-                    if (!li.classList.contains('completed')) {
-                        li.classList.add('completed');
-                        playSound('success');
-                    } else {
-                        li.classList.remove('completed');
-                    }
+                li.className = 'task-item' + (task.done ? ' completed' : '');
+                li.innerHTML = `<div class="task-checkbox"></div><span style="flex:1;">${task.text}</span><span class="task-delete" data-index="${index}" style="margin-left:10px; color:#bbb; font-size:20px; padding:0 6px;">✕</span>`;
+
+                li.querySelector('.task-checkbox').onclick = (e) => {
+                    e.stopPropagation();
+                    toggleTaskDone(index);
                 };
+                li.querySelector('span[style*="flex:1"]').onclick = () => toggleTaskDone(index);
+                li.querySelector('.task-delete').onclick = (e) => {
+                    e.stopPropagation();
+                    deleteTask(index);
+                };
+
                 list.appendChild(li);
             });
+        }
+
+        function toggleTaskDone(index) {
+            tasks[index].done = !tasks[index].done;
+            if (tasks[index].done) playSound('success');
+            saveTasks();
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
         }
 
         function loadTasksFromURL() {
             const params = new URLSearchParams(window.location.search);
             const tasksParam = params.get('tasks');
             if (tasksParam) {
-                tasks = decodeURIComponent(tasksParam).split(',');
+                const newTaskTexts = decodeURIComponent(tasksParam).split(/[,、]/).map(t => t.trim()).filter(t => t.length > 0);
+                newTaskTexts.forEach(text => {
+                    tasks.push({ text: text, done: false });
+                });
+                saveTasks();
             }
             renderTasks();
         }
@@ -669,13 +709,19 @@
         function importTasksFromInput() {
             const inputVal = document.getElementById('csvTasks').value;
             if(inputVal) {
-                tasks = inputVal.split(',');
+                const newTasks = inputVal.split(/[,、]/).map(t => t.trim()).filter(t => t.length > 0);
+                newTasks.forEach(text => {
+                    tasks.push({ text: text, done: false });
+                });
+                document.getElementById('csvTasks').value = '';
+                saveTasks();
                 renderTasks();
                 toggleImportArea();
             }
         }
 
         window.onload = () => {
+            loadTasks();
             loadTasksFromURL();
             resetTimerDisplayFromInput();
             if (window.speechSynthesis) {
