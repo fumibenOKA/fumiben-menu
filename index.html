@@ -5,21 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ふみ勉！本日のタスク管理</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+
         :root {
-            --bg-color: #f7f9fc;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --accent-pink: #ff6b81;
-            --accent-blue: #4ea8de;
-            --accent-yellow: #ffd166;
-            --accent-green: #06d6a0;
+            --bg-color: #f2efe9;
+            --card-bg: #fbf9f4;
+            --text-main: #6b6259;
+            --gray: #c7c1b7;
+            --line: #e2ddd3;
+            --accent-pink: #d9b6ab;   /* rose */
+            --accent-blue: #a8b89a;   /* moss（青枠の代わりに使用） */
+            --accent-yellow: #cdbfa0; /* 落ち着いたサンド系 */
+            --accent-green: #a8b89a; /* moss */
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+            font-family: 'Zen Maru Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
         }
 
         body {
@@ -33,13 +37,20 @@
             overflow-x: hidden;
         }
 
+        .page-title {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 20px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
         /* 画面全体のコンテナ */
         .container {
             width: 100%;
             max-width: 900px;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 16px;
         }
 
         @media (min-width: 768px) {
@@ -55,14 +66,31 @@
         .card {
             background: var(--card-bg);
             border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-            border: 4px solid transparent;
+            padding: 22px;
+            box-shadow: 0 4px 14px rgba(107, 98, 89, 0.06);
+            border: 2px solid var(--line);
+            position: relative;
             transition: all 0.3s ease;
         }
 
+        .card::after {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            background: var(--accent-blue);
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.4;
+        }
+
         h2 {
-            font-size: 24px;
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 16px;
+            font-weight: normal;
+            color: var(--text-main);
+            opacity: 0.85;
             margin-bottom: 16px;
             display: flex;
             align-items: center;
@@ -71,7 +99,6 @@
 
         /* タイマーセクション */
         .timer-card {
-            border-color: var(--accent-blue);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -81,40 +108,40 @@
 
         .timer-circle {
             position: relative;
-            width: 180px;
-            height: 180px;
+            width: 170px;
+            height: 170px;
             border-radius: 50%;
-            background: conic-gradient(var(--accent-blue) 360deg, #edeef2 0deg);
+            background: conic-gradient(var(--accent-blue) 360deg, #ece8e0 0deg);
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 16px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 8px rgba(107, 98, 89, 0.08);
         }
 
         .timer-inner {
-            width: 150px;
-            height: 150px;
-            background: white;
+            width: 142px;
+            height: 142px;
+            background: var(--card-bg);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
-            font-weight: bold;
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 30px;
+            color: var(--text-main);
         }
 
         .timer-controls button {
-            padding: 12px 24px;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
+            padding: 11px 22px;
+            font-size: 14px;
+            font-family: 'Yusei Magic', sans-serif;
+            border: 2px solid var(--accent-blue);
             border-radius: 50px;
-            background-color: var(--accent-blue);
-            color: white;
+            background-color: #eef2e9;
+            color: var(--text-main);
             cursor: pointer;
             margin: 4px;
-            box-shadow: 0 4px 10px rgba(78, 168, 222, 0.3);
         }
 
         .timer-controls button:active {
@@ -123,7 +150,7 @@
 
         .alarm-inputs {
             margin-bottom: 12px;
-            font-size: 16px;
+            font-size: 14px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -137,10 +164,13 @@
         }
         
         .alarm-inputs input {
-            font-size: 18px;
+            font-size: 16px;
+            font-family: 'Zen Maru Gothic', sans-serif;
             padding: 4px 8px;
-            border-radius: 8px;
-            border: 2px solid #ccc;
+            border-radius: 10px;
+            border: 2px solid var(--line);
+            background: #f5f2ec;
+            color: var(--text-main);
             text-align: center;
         }
         .input-time { width: 110px; }
@@ -148,65 +178,63 @@
 
         /* ガチャ・キャラクターセクション */
         .gacha-card {
-            border-color: var(--accent-pink);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            position: relative;
             overflow: hidden;
         }
 
         .char-display {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--accent-pink);
-            margin: 15px 0;
-            min-height: 40px;
-            padding: 10px;
-            border-radius: 12px;
-            background: #fff0f3;
-            width: 100%;
+            display: inline-block;
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 13px;
+            color: #fff;
+            margin: 8px 0;
+            min-height: 16px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: var(--accent-pink);
+            opacity: 0.85;
+            width: auto;
         }
 
         .speech-bubble {
-            background: #f1f1f1;
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 10px;
-            font-size: 18px;
+            background: #f5f2ec;
+            border-radius: 18px;
+            padding: 14px;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #857c72;
             position: relative;
             width: 100%;
-            min-height: 80px;
+            min-height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
         }
 
         /* タスクセクション */
-        .task-card {
-            border-color: var(--accent-yellow);
-        }
-
         .task-list {
             list-style: none;
-            max-height: 320px;
-            overflow-y: auto;
+            max-height: none;
+            overflow-y: visible;
         }
 
         .task-item {
             display: flex;
             align-items: center;
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 16px;
-            margin-bottom: 12px;
+            padding: 14px 16px;
+            background: #f6f4ee;
+            border-radius: 18px;
+            margin-bottom: 10px;
             cursor: pointer;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 500;
             transition: all 0.2s;
-            border: 2px solid #eee;
+            border: 2px solid var(--line);
             user-select: none;
             -webkit-user-select: none;
         }
@@ -216,70 +244,84 @@
         }
 
         .task-item.completed {
-            background: #e8f5e9;
-            border-color: var(--accent-green);
-            color: #81c784;
+            background: #eef2e9;
+            border-color: var(--accent-blue);
+            color: #93a187;
             text-decoration: line-through;
+            opacity: 0.7;
             animation: pop 0.3s ease-in-out;
         }
 
         .task-checkbox {
-            width: 28px;
-            height: 28px;
+            width: 22px;
+            height: 22px;
             border-radius: 6px;
-            border: 3px solid #ccc;
+            border: 2px solid var(--gray);
+            background: #f5f2ec;
             margin-right: 16px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .completed .task-checkbox {
-            background-color: var(--accent-green);
-            border-color: var(--accent-green);
+            background-color: var(--accent-blue);
+            border-color: var(--accent-blue);
         }
 
         .completed .task-checkbox::after {
             content: "✓";
             color: white;
-            font-size: 20px;
+            font-size: 14px;
             font-weight: bold;
         }
 
-        /* データ入力用隠しフォーム＆リマインダー連携 */
+        .task-delete {
+            color: var(--gray) !important;
+            margin-left: 6px;
+            font-size: 18px;
+            padding: 0 4px;
+        }
+
+        .task-edit {
+            margin-left: 6px;
+            font-size: 16px;
+            padding: 0 4px;
+            opacity: 0.7;
+        }
+
+        .task-handle {
+            margin-left: 10px;
+            font-size: 20px;
+            color: var(--gray);
+            padding: 0 6px;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        /* データ入力用隠しフォーム */
         .import-section {
             margin-top: 15px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
-        .btn-ios-reminder {
-            align-self: flex-start;
-            background-color: #007aff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.2);
-        }
 
         .import-toggle {
             align-self: flex-start;
             background: none;
             border: none;
-            color: #888;
-            font-size: 14px;
+            color: var(--gray);
+            font-size: 13px;
             cursor: pointer;
             text-decoration: underline;
             text-align: left;
+            font-family: 'Zen Maru Gothic', sans-serif;
         }
         
         .import-area {
@@ -289,30 +331,29 @@
         
         .import-area input {
             width: 70%;
-            padding: 8px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            padding: 8px 12px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--line);
+            background: #f5f2ec;
+            color: var(--text-main);
         }
         
         .import-area button {
-            padding: 8px 12px;
-            font-size: 16px;
-            background: #666;
+            padding: 8px 14px;
+            font-size: 14px;
+            font-family: 'Yusei Magic', sans-serif;
+            background: var(--gray);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
         }
 
         /* リンクランチャーセクション */
-        .launcher-card {
-            border-color: var(--accent-green);
-        }
-
         .launcher-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 14px;
         }
 
         .launcher-btn {
@@ -320,33 +361,36 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            border-radius: 18px;
-            color: white;
+            padding: 18px;
+            border-radius: 20px;
+            color: #fff;
             text-decoration: none;
-            font-size: 20px;
-            font-weight: bold;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
             text-align: center;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(107, 98, 89, 0.08);
             transition: transform 0.2s;
+            opacity: 0.92;
         }
 
         .launcher-btn:active {
             transform: scale(0.95);
         }
 
-        .btn-ecc { background-color: #1a3a5f; }          
-        .btn-ytm { background-color: #990000; }          
-        .btn-gemini-eng { background-color: #ff9f43; }   
-        .btn-gemini-his { background-color: #8B4513; }   
-        .btn-gemini-math { background-color: #3b82f6; }  
-        .btn-gemini-sci { background-color: #10b981; }   
-        .btn-gemini-soc { background-color: #8b5cf6; }   
+        .btn-ecc { background-color: #7b8ea3; }
+        .btn-ytm { background-color: #c08a8a; }
+        .btn-gemini-eng { background-color: #d3a36b; }
+        .btn-gemini-his { background-color: #a98b6a; }
+        .btn-gemini-math { background-color: #8a9fc0; }
+        .btn-gemini-sci { background-color: #93a98a; }
+        .btn-gemini-soc { background-color: #a692b3; }
 
         .launcher-btn span {
-            font-size: 12px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 11px;
             font-weight: normal;
-            opacity: 0.8;
+            opacity: 0.85;
             margin-top: 4px;
         }
 
@@ -358,29 +402,29 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 107, 129, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 107, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 107, 129, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(217, 182, 171, 0.6); }
+            70% { box-shadow: 0 0 0 18px rgba(217, 182, 171, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(217, 182, 171, 0); }
         }
 
         .alarm-active {
             animation: pulse 1.5s infinite;
-            background-color: #ffe5e9 !important;
+            background-color: #f3e5e0 !important;
         }
     </style>
 </head>
 <body>
-
+    <div class="page-title">ふみ勉、すみっこで。</div>
     <div class="container">
         <div class="card timer-card">
-            <h2>⏱️ タイマー / アラーム</h2>
+            <h2>⏱️ いま、なんじ　<span id="liveClock" style="font-size:22px;"></span></h2>
             <div class="alarm-inputs">
                 <div>
-                    <label>指定時刻通知: </label>
+                    <label>よびかけのじかん: </label>
                     <input type="time" id="alarmTime" class="input-time" value="17:00">
                 </div>
                 <div>
-                    <label>カウントダウン: </label>
+                    <label>そっとタイマー: </label>
                     <input type="number" id="timerDuration" class="input-min" value="25" min="1" max="180"> 分
                 </div>
             </div>
@@ -390,18 +434,18 @@
             <div class="timer-controls">
                 <button id="startTimerBtn" onclick="toggleTimer()">カウントダウン開始</button>
                 <button id="resetTimerBtn" style="background-color:#9aa5b1;" onclick="resetTimer()">リセット</button>
-                <button id="stopAlarmBtn" style="display:none; background-color:var(--accent-pink);" onclick="stopAlarm()">アラームを止めてガチャ！</button>
+                <button id="stopAlarmBtn" style="display:none; background-color:#b5685a; color:#fff; border-color:#b5685a; font-weight:bold;" onclick="stopAlarm()">アラームを止めてガチャ！</button>
             </div>
         </div>
 
         <div class="card gacha-card" id="gachaCard">
-            <h2>🎁 本日の担当キャラクター</h2>
+            <h2>🎁 きょうのとなり</h2>
             <div class="char-display" id="charName">タイマー停止で出現！</div>
             <div class="speech-bubble" id="charSpeech">ここにキャラクターのセリフが表示されて、iPadが喋るよ！</div>
         </div>
 
         <div class="card task-card full-width">
-            <h2>📝 今日の「ふみ勉」タスク</h2>
+            <h2>📝 きょうのこと、ちょっとずつ</h2>
             <ul class="task-list" id="taskList">
                 </ul>
 
@@ -416,7 +460,7 @@
         </div>
 
         <div class="card launcher-card full-width">
-            <h2>🚀 クイックランチャー</h2>
+            <h2>🚪 いつものおへや</h2>
             <div class="launcher-grid">
                 <a href="https://pt.eccjrst.jp/App_D/StudentTop/Init?fid=EJC3&tab=0.716799565459043" target="ecc_tab" class="launcher-btn btn-ecc">
                     ECCストリーミング
@@ -451,7 +495,28 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
+        const praiseStyles = [
+            { style: "関西風", pitch: 1.0, rate: 1.05, lines: ["ようやったやん！", "ええ感じやで〜", "その調子や、ええで", "なんやかんや凄いな", "ほんま、よう頑張った"] },
+            { style: "お嬢様風", pitch: 1.2, rate: 0.95, lines: ["見事ですわ", "よくできましたわね", "お見事でございます", "感心いたしましたわ", "さすがでございますね"] },
+            { style: "博多風", pitch: 1.1, rate: 1.05, lines: ["よかよか、よかった", "がんばったとね〜", "うちもうれしいばい", "やったやん、すごいよ", "ええ感じやけん"] },
+            { style: "ネコ風", pitch: 1.3, rate: 1.0, lines: ["すごいニャ！", "やったニャー！", "かっこいいニャ〜", "その調子ニャ！", "えらいニャ、よしよし"] },
+            { style: "執事風", pitch: 0.85, rate: 0.95, lines: ["大変お見事です", "お疲れ様でございました", "素晴らしいかと存じます", "ご立派でございます", "かしこまりました、お見事"] },
+            { style: "おかん風", pitch: 1.05, rate: 1.0, lines: ["よう頑張ったね〜", "えらいえらい！", "ご飯にしようか", "偉いね、ほんとに", "よしよし、いい子や"] },
+            { style: "すみっコ風", pitch: 1.05, rate: 0.95, lines: ["やったあ〜つぎもいけるかも", "すみっこで喜んじゃう", "ちょっと誇らしいかも", "みんなのおかげだね", "ほっこりするね〜"] }
+        ];
+
+        function getDailyPraiseStyle() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+            return praiseStyles[dayOfYear % praiseStyles.length];
+        }
+
+        let lastAlarmSource = 'time'; // 'time' = 指定時刻アラーム, 'countdown' = カウントダウン終了
+
         const characterList = [
             { name: "ツンデレな幼馴染風", speech: "べ、別にアンタの心配なんてしてないんだからね！でも…タスクが残ってるなら、さっさと終わらせなさいよ！今日のメニューはこれよ！：", pitch: 1.2, rate: 1.1 },
             { name: "超スパルタ塾講師風", speech: "受験は甘くありません！さあ、今日も1点をもぎ取るために全力で集中しますよ！本日のタスクを読み上げます。起立、注目！：", pitch: 0.9, rate: 1.2 },
@@ -462,6 +527,7 @@
         ];
 
         let audioCtx = null;
+        let speechUnlocked = false;
         
         function initAudio() {
             if (!audioCtx) {
@@ -469,6 +535,15 @@
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
+            }
+            unlockSpeechSynthesis();
+        }
+
+        function unlockSpeechSynthesis() {
+            if (window.speechSynthesis && !speechUnlocked) {
+                speechUnlocked = true;
+                const unlockUtterance = new SpeechSynthesisUtterance('いってみよう！');
+                window.speechSynthesis.speak(unlockUtterance);
             }
         }
         
@@ -519,15 +594,26 @@
             updateTimerDisplay();
         }
 
+        function updateLiveClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('liveClock').innerText = `${h}:${m}`;
+        }
+        updateLiveClock();
+
         setInterval(() => {
             const now = new Date();
             const currentHours = String(now.getHours()).padStart(2, '0');
             const currentMinutes = String(now.getMinutes()).padStart(2, '0');
             const currentTimeStr = `${currentHours}:${currentMinutes}`;
-            
+
+            document.getElementById('liveClock').innerText = `${currentHours}:${currentMinutes}`;
+
             const targetTimeStr = document.getElementById('alarmTime').value;
             
             if (currentTimeStr === targetTimeStr && !alarmInterval && now.getSeconds() === 0) {
+                lastAlarmSource = 'time';
                 triggerAlarm();
             }
         }, 1000);
@@ -553,7 +639,8 @@
                     updateTimerDisplay();
                     if (timeLeft <= 0) {
                         clearInterval(countdownInterval);
-                        triggerAlarm();
+                        lastAlarmSource = 'countdown';
+                        startPraiseAlarm();
                         resetTimerDisplayFromInput();
                         btn.innerText = "カウントダウン開始";
                         isTimerRunning = false;
@@ -578,6 +665,27 @@
             document.getElementById('timerCircle').style.background = `conic-gradient(var(--accent-blue) ${percent}deg, #edeef2 0deg)`;
         }
 
+        let praiseLoopInterval = null;
+        let praiseAutoStopTimeout = null;
+
+        function startPraiseAlarm() {
+            document.getElementById('gachaCard').classList.add('alarm-active');
+            document.getElementById('stopAlarmBtn').style.display = 'inline-block';
+
+            showPraiseMessage(); // すぐに1回目を再生
+
+            if (!praiseLoopInterval) {
+                praiseLoopInterval = setInterval(() => {
+                    showPraiseMessage();
+                }, 4000);
+            }
+
+            if (praiseAutoStopTimeout) clearTimeout(praiseAutoStopTimeout);
+            praiseAutoStopTimeout = setTimeout(() => {
+                stopAlarm();
+            }, 60000); // 1分経ったら自動停止
+        }
+
         function triggerAlarm() {
             document.getElementById('gachaCard').classList.add('alarm-active');
             document.getElementById('stopAlarmBtn').style.display = 'inline-block';
@@ -591,19 +699,51 @@
         function stopAlarm() {
             clearInterval(alarmInterval);
             alarmInterval = null;
+
+            clearInterval(praiseLoopInterval);
+            praiseLoopInterval = null;
+            clearTimeout(praiseAutoStopTimeout);
+            praiseAutoStopTimeout = null;
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+
             document.getElementById('gachaCard').classList.remove('alarm-active');
             document.getElementById('stopAlarmBtn').style.display = 'none';
-            
-            runGacha();
+
+            if (lastAlarmSource !== 'countdown') {
+                runGacha();
+            }
+        }
+
+        function showPraiseMessage() {
+            const dailyStyle = getDailyPraiseStyle();
+            const line = dailyStyle.lines[Math.floor(Math.random() * dailyStyle.lines.length)];
+
+            document.getElementById('charName').innerText = `🎉 タイマー終了！（${dailyStyle.style}）`;
+            document.getElementById('charSpeech').innerText = line;
+
+            if (window.speechSynthesis) {
+                if (!window.speechSynthesis.speaking) {
+                    const utterance = new SpeechSynthesisUtterance(line);
+                    utterance.lang = 'ja-JP';
+                    utterance.pitch = dailyStyle.pitch;
+                    utterance.rate = dailyStyle.rate;
+
+                    const jaVoice = getBestJapaneseVoice();
+                    if (jaVoice) {
+                        utterance.voice = jaVoice;
+                    }
+
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
         }
 
         function runGacha() {
             const randomChar = characterList[Math.floor(Math.random() * characterList.length)];
             document.getElementById('charName').innerText = `今日の担当：${randomChar.name}`;
-            
-            const activeTasks = Array.from(document.querySelectorAll('.task-item:not(.completed)'))
-                                     .map(item => item.textContent.trim());
-            
+
+            const activeTasks = tasks.filter(t => !t.done).map(t => t.text);
+
             let speechText = randomChar.speech;
             if (activeTasks.length > 0) {
                 speechText += activeTasks.join('、と、') + ' です！頑張ってくださいね！';
@@ -613,12 +753,30 @@
 
             document.getElementById('charSpeech').innerText = speechText;
 
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(speechText);
-            utterance.lang = 'ja-JP';
-            utterance.pitch = randomChar.pitch;
-            utterance.rate = randomChar.rate;
-            window.speechSynthesis.speak(utterance);
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(speechText);
+                utterance.lang = 'ja-JP';
+                utterance.pitch = randomChar.pitch;
+                utterance.rate = randomChar.rate;
+
+                const jaVoice = getBestJapaneseVoice();
+                if (jaVoice) {
+                    utterance.voice = jaVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function getBestJapaneseVoice() {
+            if (!window.speechSynthesis) return null;
+            const voices = window.speechSynthesis.getVoices();
+            const jaVoices = voices.filter(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
+            if (jaVoices.length === 0) return null;
+            // 「拡張版／Enhanced／Premium」など高品質ボイスを優先
+            const enhanced = jaVoices.find(v => /enhanced|premium|高品質/i.test(v.name));
+            return enhanced || jaVoices[0];
         }
 
         // ==========================================
@@ -659,13 +817,17 @@
             tasks.forEach((task, index) => {
                 const li = document.createElement('li');
                 li.className = 'task-item' + (task.done ? ' completed' : '');
-                li.innerHTML = `<div class="task-checkbox"></div><span style="flex:1;">${task.text}</span><span class="task-delete" data-index="${index}" style="margin-left:10px; color:#bbb; font-size:20px; padding:0 6px;">✕</span>`;
+                li.innerHTML = `<div class="task-checkbox"></div><span class="task-text" style="flex:1;">${task.text}</span><span class="task-edit" data-index="${index}">✏️</span><span class="task-delete" data-index="${index}">✕</span><span class="task-handle">⠿</span>`;
 
                 li.querySelector('.task-checkbox').onclick = (e) => {
                     e.stopPropagation();
                     toggleTaskDone(index);
                 };
-                li.querySelector('span[style*="flex:1"]').onclick = () => toggleTaskDone(index);
+                li.querySelector('.task-text').onclick = () => toggleTaskDone(index);
+                li.querySelector('.task-edit').onclick = (e) => {
+                    e.stopPropagation();
+                    startEditTask(index, li);
+                };
                 li.querySelector('.task-delete').onclick = (e) => {
                     e.stopPropagation();
                     deleteTask(index);
@@ -673,6 +835,44 @@
 
                 list.appendChild(li);
             });
+        }
+
+        function startEditTask(index, li) {
+            const textSpan = li.querySelector('.task-text');
+            const currentText = tasks[index].text;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.className = 'task-edit-input';
+            input.style.flex = '1';
+            input.style.fontSize = '18px';
+            input.style.padding = '4px 8px';
+            input.style.borderRadius = '8px';
+            input.style.border = '2px solid var(--accent-blue)';
+            input.style.fontFamily = "'Zen Maru Gothic', sans-serif";
+
+            textSpan.replaceWith(input);
+            input.focus();
+            input.select();
+
+            const finishEdit = () => {
+                const newText = input.value.trim();
+                if (newText) {
+                    tasks[index].text = newText;
+                    saveTasks();
+                }
+                renderTasks();
+            };
+
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+            });
+            input.addEventListener('click', (e) => e.stopPropagation());
         }
 
         function toggleTaskDone(index) {
@@ -726,6 +926,22 @@
             resetTimerDisplayFromInput();
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+
+            if (window.Sortable) {
+                new Sortable(document.getElementById('taskList'), {
+                    handle: '.task-handle',
+                    animation: 150,
+                    onEnd: function (evt) {
+                        const movedItem = tasks.splice(evt.oldIndex, 1)[0];
+                        tasks.splice(evt.newIndex, 0, movedItem);
+                        saveTasks();
+                        renderTasks();
+                    }
+                });
             }
         };
     </script>
