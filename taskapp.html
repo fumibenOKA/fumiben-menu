@@ -52,7 +52,7 @@
         .page-title {
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
             color: #5f96b3;
             margin-bottom: 0px;
             line-height: 1.2;
@@ -61,7 +61,7 @@
         .date-display {
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 15px;
             color: #5f96b3;
             margin-bottom: 0px;
             line-height: 1.3;
@@ -83,7 +83,7 @@
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
             font-weight: bold;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 15px;
         }
 
         .footer-bar {
@@ -98,13 +98,9 @@
             color: #a9c4d6;
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 15px;
             cursor: pointer;
             padding: 6px 10px;
-        }
-        .music-link.playing {
-            color: #7fb3d5;
-            font-weight: bold;
         }
 
         .tabs {
@@ -119,7 +115,7 @@
             background: #eef7fc;
             border-radius: 16px;
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-size: 12px;
+            font-size: 15px;
             cursor: pointer;
             font-weight: bold;
             color: #8fb8d2;
@@ -245,7 +241,7 @@
             min-width: 0;
             border: none;
             background: transparent;
-            font-size: 17px;
+            font-size: 19px;
             font-weight: 500;
             font-family: inherit;
             color: var(--text-color);
@@ -262,10 +258,10 @@
         }
 
         .time-badge {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            font-size: 15px;
+            font-size: 17px;
             cursor: pointer;
             user-select: none;
             flex-shrink: 0;
@@ -290,7 +286,7 @@
             border: none;
             background: #f3faff;
             border-radius: 12px;
-            font-size: 15px;
+            font-size: 17px;
         }
         .add-input:focus {
             outline: none;
@@ -304,6 +300,7 @@
             border-radius: 12px;
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
             font-weight: bold;
+            font-size: 16px;
             cursor: pointer;
             flex-shrink: 0;
         }
@@ -337,14 +334,16 @@
 </div>
 
 <div class="footer-bar">
-    <button id="music-btn" class="music-link" onclick="toggleMusic()">Music</button>
+    <button id="music-btn" class="music-link" onclick="toggleMusic()">▶ Cateenを聴く</button>
 </div>
+
+
 
 <script>
     let tasks = [
-        { id: 1, text: "娘のピアノの送り迎え", time: "morning", completed: false, important: true },
-        { id: 2, text: "メール返信と書類整理", time: "noon", completed: false, important: false },
-        { id: 3, text: "お気に入りの曲を聴いてのんびり", time: "night", completed: false, important: false }
+        { id: 1, text: "ハンカチ　水筒", time: "morning", completed: false, important: false },
+        { id: 2, text: "フロス　はみがき", time: "night", completed: false, important: false },
+        { id: 3, text: "習ったことを３つきく", time: "night", completed: false, important: false }
     ];
 
     let currentFilter = 'all';
@@ -595,16 +594,7 @@
     }
 
     function toggleMusic() {
-        const btn = document.getElementById('music-btn');
-        isMusicPlaying = !isMusicPlaying;
-        if (isMusicPlaying) {
-            btn.classList.add('playing');
-            btn.textContent = "Pause";
-            window.open("https://music.youtube.com/search?q=" + encodeURIComponent("Cateen"), "_blank");
-        } else {
-            btn.classList.remove('playing');
-            btn.textContent = "Music";
-        }
+        window.open("https://music.youtube.com/search?q=" + encodeURIComponent("Cateen"), "_blank");
     }
 
     let wakeLock = null;
