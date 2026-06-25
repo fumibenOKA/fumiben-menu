@@ -338,6 +338,9 @@
             background: #f5f2ec;
             color: var(--text-main);
         }
+        .import-area input::placeholder {
+            color: #c7c1b7;
+        }
         
         .import-area button {
             padding: 8px 14px;
@@ -352,13 +355,13 @@
         /* あさのしたく一括チェックボタン(省スペース) */
         .morning-btn {
             font-family: 'Yusei Magic', sans-serif;
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: normal;
             color: #8a7a52;
             background: #f3e9d6;
             border: 1.5px solid var(--accent-yellow);
             border-radius: 20px;
-            padding: 5px 10px;
+            padding: 5px 8px;
             cursor: pointer;
             white-space: nowrap;
             flex-shrink: 0;
@@ -746,11 +749,11 @@
             <div class="alarm-inputs">
                 <div>
                     <label>よびかけのじかん: </label>
-                    <input type="time" id="alarmTime" class="input-time" value="17:00">
+                    <input type="time" id="alarmTime" class="input-time" value="07:10">
                 </div>
                 <div>
                     <label>そっとタイマー: </label>
-                    <input type="number" id="timerDuration" class="input-min" value="25" min="1" max="180"> 分
+                    <input type="number" id="timerDuration" class="input-min" value="15" min="1" max="180"> 分
                 </div>
             </div>
             <div class="timer-circle" id="timerCircle">
@@ -789,16 +792,19 @@
         <div class="card task-card full-width">
             <h2 style="display:flex; justify-content:space-between; align-items:center;">
                 <span>📝 きょうのこと、ちょっとずつ</span>
-                <button class="morning-btn" onclick="markAllTasksDone()">☀️ あさのしたく</button>
+                <span style="display:flex; gap:6px;">
+                    <button class="morning-btn" onclick="markAllTasksDone()">☀️ あさのしたく</button>
+                    <button class="morning-btn" onclick="tidyUpTasks()">🧹 すみっこへ</button>
+                </span>
             </h2>
             <ul class="task-list" id="taskList">
                 </ul>
 
             <div class="import-section">
-                <span style="font-size:13px; color:#888;">✅ タスクの状態はこのiPadに自動保存されます</span>
-                <button class="import-toggle" onclick="toggleImportArea()">＋タスクを手動で一括登録・修正する</button>
+                <span style="font-size:13px; color:#888;">✅ このiPadが、こっそりおぼえておくね</span>
+                <button class="import-toggle" onclick="toggleImportArea()">＋タスクをつくる</button>
                 <div class="import-area" id="importArea">
-                    <input type="text" id="csvTasks" placeholder="算数プリント、漢字、歴史（、でも,でも区切れるよ）">
+                    <input type="text" id="csvTasks" placeholder="宿題、あそび、しごと">
                     <button onclick="importTasksFromInput()">登録</button>
                 </div>
             </div>
@@ -963,8 +969,8 @@
         let alarmInterval = null;
         let countdownInterval = null;
         let isTimerRunning = false;
-        let timeLeft = 25 * 60; 
-        let totalConfiguredTime = 25 * 60;
+        let timeLeft = 15 * 60; 
+        let totalConfiguredTime = 15 * 60;
 
         // 初期表示の設定
         document.getElementById('timerDuration').addEventListener('change', function() {
@@ -974,7 +980,7 @@
         });
 
         function resetTimerDisplayFromInput() {
-            const m = parseInt(document.getElementById('timerDuration').value) || 25;
+            const m = parseInt(document.getElementById('timerDuration').value) || 15;
             timeLeft = m * 60;
             totalConfiguredTime = m * 60;
             updateTimerDisplay();
@@ -1014,7 +1020,7 @@
             } else {
                 if (timeLeft === totalConfiguredTime) {
                     // 開始時にフォームから最新の分数を取り込む
-                    const m = parseInt(document.getElementById('timerDuration').value) || 25;
+                    const m = parseInt(document.getElementById('timerDuration').value) || 15;
                     timeLeft = m * 60;
                     totalConfiguredTime = m * 60;
                 }
@@ -1279,6 +1285,15 @@
         function markAllTasksDone() {
             if (tasks.length === 0) return;
             tasks.forEach(t => t.done = false);
+            saveTasks();
+            renderTasks();
+        }
+
+        function tidyUpTasks() {
+            if (tasks.length === 0) return;
+            const undone = tasks.filter(t => !t.done);
+            const done = tasks.filter(t => t.done);
+            tasks = undone.concat(done);
             saveTasks();
             renderTasks();
         }
