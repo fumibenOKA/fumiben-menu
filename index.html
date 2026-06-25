@@ -349,6 +349,331 @@
             border-radius: 10px;
         }
 
+        /* あさのしたく一括チェックボタン(省スペース) */
+        .morning-btn {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 10.5px;
+            font-weight: normal;
+            color: #8a7a52;
+            background: #f3e9d6;
+            border: 1.5px solid var(--accent-yellow);
+            border-radius: 20px;
+            padding: 5px 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .morning-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* リンクランチャーセクション */
+
+        /* ===== がんばりっこ ちょきんばこ ===== */
+        .piggy-card {
+            text-align: center;
+        }
+        .piggy-month {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 11px;
+            color: #9a9388;
+            margin-bottom: 6px;
+        }
+        .piggy-amount {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 32px;
+            color: var(--accent-pink);
+            margin-bottom: 6px;
+        }
+        .piggy-amount.bump {
+            animation: piggybump 0.4s ease;
+        }
+        @keyframes piggybump {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        .piggy-sub {
+            font-size: 10.5px;
+            color: #b3aba0;
+        }
+
+        /* お財布(ちょっとコイン) */
+        .wallet-bar {
+            margin-top: 16px;
+            background: #f5f2ec;
+            border: 2px dashed var(--accent-yellow);
+            border-radius: 16px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .wallet-bar.disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+        .wallet-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+        .coin-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .coin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff2cf, var(--accent-yellow) 70%);
+        }
+        .coin-dot.empty {
+            background: #e6e0d3;
+        }
+        .wallet-arrow {
+            color: var(--gray);
+            font-size: 13px;
+        }
+
+        /* ===== ガチャ オーバーレイ ===== */
+        .gacha-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(40, 35, 28, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            z-index: 999;
+        }
+        .gacha-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .gacha-modal {
+            width: 88%;
+            max-width: 330px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 20px 18px 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transform: scale(0.85) translateY(10px);
+            transition: transform 0.25s;
+            position: relative;
+        }
+        .gacha-overlay.open .gacha-modal {
+            transform: scale(1) translateY(0);
+        }
+        .gacha-modal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .gacha-modal-title {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        .gacha-cancel-btn {
+            font-size: 11px;
+            color: var(--gray);
+            background: none;
+            border: none;
+            text-decoration: underline;
+            cursor: pointer;
+            font-family: 'Zen Maru Gothic', sans-serif;
+        }
+        .gacha-machine-wrap {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .gacha-dome {
+            width: 120px;
+            height: 92px;
+            border-radius: 60px 60px 12px 12px;
+            background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95), rgba(168,184,154,0.18) 65%);
+            border: 3px solid var(--line);
+            position: relative;
+            margin-bottom: -6px;
+            overflow: hidden;
+        }
+        .gacha-capsule {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .gc1 { background: linear-gradient(180deg,#f0d9d2,var(--accent-pink)); top:12px; left:8px; }
+        .gc2 { background: linear-gradient(180deg,#fff2cf,var(--accent-yellow)); top:30px; left:42px; }
+        .gc3 { background: linear-gradient(180deg,#dbe6d4,var(--accent-blue)); top:8px; left:76px; }
+        .gc4 { background: linear-gradient(180deg,#e8e2d4,var(--gray)); top:44px; left:12px; }
+        .gc5 { background: linear-gradient(180deg,#ecd9e4,#c79bb0); top:46px; left:78px; }
+        .gacha-dome.spinning .gacha-capsule {
+            animation: gachaShuffle 0.5s linear infinite;
+        }
+        @keyframes gachaShuffle {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(4px,-3px) rotate(90deg); }
+            50% { transform: translate(-3px,4px) rotate(180deg); }
+            75% { transform: translate(3px,3px) rotate(270deg); }
+            100% { transform: translate(0,0) rotate(360deg); }
+        }
+        .gacha-machine-body {
+            width: 146px;
+            background: var(--accent-yellow);
+            border-radius: 0 0 16px 16px;
+            padding: 10px 10px 14px;
+            box-shadow: 0 5px 0 #b0a382;
+        }
+        .gacha-slot-label {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 9px;
+            color: #5c5140;
+            text-align: center;
+            margin-bottom: 7px;
+        }
+        .gacha-coin-slot {
+            width: 44px;
+            height: 14px;
+            background: #6b6259;
+            border-radius: 5px;
+            margin: 0 auto 10px;
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.4);
+        }
+        .gacha-coin-slot.lit {
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.4), 0 0 10px 2px var(--accent-pink);
+        }
+        .gacha-lever {
+            width: 60px;
+            height: 22px;
+            background: var(--accent-pink);
+            border-radius: 11px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #fff;
+            font-family: 'Yusei Magic', sans-serif;
+            box-shadow: 0 3px 0 #c19c8f;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .gacha-lever.disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        .gacha-lever.pulled {
+            animation: gachaLeverSpin 1.4s ease-in-out;
+        }
+        @keyframes gachaLeverSpin {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(340deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .gacha-coin-tray {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            min-height: 34px;
+        }
+        .gacha-coin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff2cf, var(--accent-yellow) 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 2px 0 #b0a382;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.18s;
+        }
+        .gacha-coin:active {
+            transform: scale(0.9);
+        }
+        .gacha-coin.flying {
+            position: fixed;
+            transition: top 0.4s cubic-bezier(.4,0,.2,1), left 0.4s cubic-bezier(.4,0,.2,1), opacity 0.4s, transform 0.4s;
+            z-index: 1000;
+        }
+        .gacha-tray-hint {
+            text-align: center;
+            font-size: 10.5px;
+            color: #9a9388;
+            margin-top: 5px;
+        }
+        .gacha-progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 12px;
+        }
+        .gacha-pdot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e6e0d3;
+        }
+        .gacha-pdot.filled {
+            background: var(--accent-pink);
+        }
+        .gacha-result-card {
+            margin-top: 14px;
+            background: #fff;
+            border-radius: 16px;
+            border: 2px dashed var(--accent-yellow);
+            padding: 16px;
+            text-align: center;
+            display: none;
+        }
+        .gacha-result-card.show {
+            display: block;
+            animation: gachaPop 0.35s ease;
+        }
+        @keyframes gachaPop {
+            0% { transform: scale(0.7); opacity: 0; }
+            60% { transform: scale(1.08); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .gacha-result-animal {
+            font-size: 38px;
+            margin-bottom: 4px;
+        }
+        .gacha-result-name {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        .gacha-result-amount {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 20px;
+            color: var(--accent-pink);
+        }
+        .gacha-result-sub {
+            font-size: 10.5px;
+            color: #9a9388;
+            margin-top: 5px;
+        }
+        .gacha-closing-note {
+            text-align: center;
+            font-size: 10px;
+            color: #b3aba0;
+            margin-top: 8px;
+        }
+
         /* リンクランチャーセクション */
         .launcher-grid {
             display: grid;
@@ -444,8 +769,28 @@
             <div class="speech-bubble" id="charSpeech">ここにキャラクターのセリフが表示されて、iPadが喋るよ！</div>
         </div>
 
+        <div class="card piggy-card">
+            <h2 style="justify-content:center;">🐷 がんばりっこ ちょきんばこ</h2>
+            <div class="piggy-month" id="piggyMonth">6月分</div>
+            <div class="piggy-amount"><span id="piggyTotal">0</span>円</div>
+            <div class="piggy-sub" id="piggyGachaCount">今月のガチャ：0/6回</div>
+            <div class="piggy-sub">月がかわると自動で0円にリセットされるよ</div>
+
+            <div class="wallet-bar disabled" id="walletBar">
+                <div class="wallet-left">
+                    👛 ちょっとコイン
+                    <div class="coin-dots" id="coinDots"></div>
+                    <span id="walletText">0/5</span>
+                </div>
+                <div class="wallet-arrow">›</div>
+            </div>
+        </div>
+
         <div class="card task-card full-width">
-            <h2>📝 きょうのこと、ちょっとずつ</h2>
+            <h2 style="display:flex; justify-content:space-between; align-items:center;">
+                <span>📝 きょうのこと、ちょっとずつ</span>
+                <button class="morning-btn" onclick="markAllTasksDone()">☀️ あさのしたく</button>
+            </h2>
             <ul class="task-list" id="taskList">
                 </ul>
 
@@ -492,6 +837,47 @@
                     <span>考察のパープル</span>
                 </a>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== ガチャ オーバーレイ ===== -->
+    <div class="gacha-overlay" id="gachaOverlay">
+        <div class="gacha-modal">
+            <div class="gacha-modal-top">
+                <span class="gacha-modal-title">🎰 ごほうびガチャ</span>
+                <button class="gacha-cancel-btn" id="gachaCancelBtn">やめる</button>
+            </div>
+
+            <div class="gacha-machine-wrap">
+                <div class="gacha-dome" id="gachaDome">
+                    <div class="gacha-capsule gc1"></div>
+                    <div class="gacha-capsule gc2"></div>
+                    <div class="gacha-capsule gc3"></div>
+                    <div class="gacha-capsule gc4"></div>
+                    <div class="gacha-capsule gc5"></div>
+                </div>
+                <div class="gacha-machine-body">
+                    <p class="gacha-slot-label">投入口</p>
+                    <div class="gacha-coin-slot" id="gachaCoinSlot"></div>
+                    <div class="gacha-lever disabled" id="gachaLever">レバーを回す</div>
+                </div>
+            </div>
+
+            <div class="gacha-progress-dots" id="gachaProgressDots">
+                <div class="gacha-pdot"></div><div class="gacha-pdot"></div><div class="gacha-pdot"></div>
+                <div class="gacha-pdot"></div><div class="gacha-pdot"></div>
+            </div>
+
+            <div class="gacha-coin-tray" id="gachaCoinTray"></div>
+            <p class="gacha-tray-hint" id="gachaTrayHint">ちょっとコインをタップ →投入口へ</p>
+
+            <div class="gacha-result-card" id="gachaResultCard">
+                <div class="gacha-result-animal" id="gachaResultAnimal">🐻</div>
+                <div class="gacha-result-name" id="gachaResultName">くまさんがでた！</div>
+                <div class="gacha-result-amount" id="gachaResultAmount">+100円</div>
+                <div class="gacha-result-sub">次のお小遣いに加算されるよ</div>
+            </div>
+            <p class="gacha-closing-note" id="gachaClosingNote"></p>
         </div>
     </div>
 
@@ -880,10 +1266,19 @@
             if (tasks[index].done) playSound('success');
             saveTasks();
             renderTasks();
+            checkAllTasksDoneForCoin();
         }
 
         function deleteTask(index) {
             tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+            checkAllTasksDoneForCoin();
+        }
+
+        function markAllTasksDone() {
+            if (tasks.length === 0) return;
+            tasks.forEach(t => t.done = false);
             saveTasks();
             renderTasks();
         }
@@ -924,6 +1319,7 @@
             loadTasks();
             loadTasksFromURL();
             resetTimerDisplayFromInput();
+            initCoinWalletAndGacha();
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
                 window.speechSynthesis.onvoiceschanged = () => {
@@ -944,6 +1340,278 @@
                 });
             }
         };
+
+        // ==========================================
+        // がんばりっこ ちょきんばこ ＆ ごほうびガチャ
+        // ==========================================
+        const COIN_KEY = 'fumiben_coinwallet_v1';
+        const PIGGY_KEY = 'fumiben_piggy_v1';
+        const NEEDED = 5;
+        const MAX_GACHA_PER_MONTH = 6;
+        const MAX_BEAR_PER_MONTH = 3;
+
+        const rewards = [
+            { emoji: "🐻", name: "くまさんがでた！", amount: 100 },
+            { emoji: "🐦", name: "しまえなががでた！", amount: 70 },
+            { emoji: "🐤", name: "シジュウカラがでた！", amount: 50 },
+            { emoji: "🐰", name: "うさぎがでた！", amount: 20 },
+            { emoji: "🦎", name: "とかげ紳士がでた！", amount: 10 },
+        ];
+
+        let coinData = { coins: 0, lastAwardedDate: null };
+        let piggyData = { monthKey: null, total: 0, gachaCount: 0, bearCount: 0 };
+        let insertedCoins = 0;
+
+        function todayStr() {
+            const now = new Date();
+            return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        }
+
+        function currentMonthKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${now.getMonth() + 1}`;
+        }
+
+        function loadCoinWallet() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(COIN_KEY));
+                if (saved) coinData = saved;
+            } catch (e) {}
+        }
+
+        function saveCoinWallet() {
+            try { localStorage.setItem(COIN_KEY, JSON.stringify(coinData)); } catch (e) {}
+        }
+
+        function loadPiggy() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(PIGGY_KEY));
+                if (saved && saved.monthKey === currentMonthKey()) {
+                    piggyData = saved;
+                    if (typeof piggyData.gachaCount !== 'number') piggyData.gachaCount = 0;
+                    if (typeof piggyData.bearCount !== 'number') piggyData.bearCount = 0;
+                    return;
+                }
+            } catch (e) {}
+            piggyData = { monthKey: currentMonthKey(), total: 0, gachaCount: 0, bearCount: 0 };
+            savePiggy();
+        }
+
+        function savePiggy() {
+            try { localStorage.setItem(PIGGY_KEY, JSON.stringify(piggyData)); } catch (e) {}
+        }
+
+        function ensureCurrentMonth() {
+            if (piggyData.monthKey !== currentMonthKey()) {
+                piggyData = { monthKey: currentMonthKey(), total: 0, gachaCount: 0, bearCount: 0 };
+                savePiggy();
+                renderPiggy(false);
+            }
+        }
+
+        function renderPiggy(bump) {
+            const now = new Date();
+            document.getElementById('piggyMonth').innerText = `${now.getMonth() + 1}月分`;
+            document.getElementById('piggyTotal').innerText = piggyData.total;
+            document.getElementById('piggyGachaCount').innerText = `今月のガチャ：${piggyData.gachaCount}/${MAX_GACHA_PER_MONTH}回`;
+            if (bump) {
+                const amountEl = document.getElementById('piggyTotal').parentElement;
+                amountEl.classList.remove('bump');
+                requestAnimationFrame(() => amountEl.classList.add('bump'));
+            }
+        }
+
+        function addToPiggy(amount) {
+            ensureCurrentMonth();
+            if (piggyData.gachaCount > MAX_GACHA_PER_MONTH) return; // 安全ガード
+            piggyData.total += amount;
+            savePiggy();
+            renderPiggy(true);
+        }
+
+        function renderWallet() {
+            const walletBar = document.getElementById('walletBar');
+            document.getElementById('walletText').innerText = `${coinData.coins}/${NEEDED}`;
+            const coinDots = document.getElementById('coinDots');
+            coinDots.innerHTML = '';
+            for (let i = 0; i < NEEDED; i++) {
+                const d = document.createElement('div');
+                d.className = 'coin-dot' + (i < coinData.coins ? '' : ' empty');
+                coinDots.appendChild(d);
+            }
+            if (coinData.coins >= NEEDED) {
+                walletBar.classList.remove('disabled');
+            } else {
+                walletBar.classList.add('disabled');
+            }
+        }
+
+        function checkAllTasksDoneForCoin() {
+            if (tasks.length === 0) return;
+            const allDone = tasks.every(t => t.done);
+            if (!allDone) return;
+            if (coinData.lastAwardedDate === todayStr()) return; // きょうはもう貰った
+
+            coinData.lastAwardedDate = todayStr();
+            if (coinData.coins < NEEDED) {
+                coinData.coins++;
+            }
+            saveCoinWallet();
+            renderWallet();
+
+            if (coinData.coins >= NEEDED) {
+                setCharSpeechSafe("きょうのタスク、ぜんぶできたね！ちょっとコインが5まいたまったよ！おさいふをタップしてガチャしてみよう！");
+            } else {
+                const left = NEEDED - coinData.coins;
+                setCharSpeechSafe(`きょうのタスク、ぜんぶできたね！ちょっとコインを1まいゲット！あと${left}まいでガチャできるよ！`);
+            }
+        }
+
+        function setCharSpeechSafe(text) {
+            const el = document.getElementById('charSpeech');
+            if (el) el.innerText = text;
+        }
+
+        function initCoinWalletAndGacha() {
+            loadCoinWallet();
+            loadPiggy();
+            renderWallet();
+            renderPiggy(false);
+            checkAllTasksDoneForCoin();
+
+            document.getElementById('walletBar').addEventListener('click', () => {
+                if (coinData.coins < NEEDED) return;
+                ensureCurrentMonth();
+                if (piggyData.gachaCount >= MAX_GACHA_PER_MONTH) {
+                    setCharSpeechSafe("今月のガチャはもう6回やったよ！また来月いっしょにやろうね！");
+                    return;
+                }
+                openGacha();
+            });
+
+            document.getElementById('gachaCancelBtn').addEventListener('click', closeGacha);
+            document.getElementById('gachaLever').addEventListener('click', () => {
+                const lever = document.getElementById('gachaLever');
+                if (insertedCoins < NEEDED || lever.classList.contains('pulled')) return;
+                pullLever();
+            });
+        }
+
+        function openGacha() {
+            insertedCoins = 0;
+            document.querySelectorAll('.gacha-pdot').forEach(d => d.classList.remove('filled'));
+            document.getElementById('gachaLever').classList.add('disabled');
+            document.getElementById('gachaResultCard').classList.remove('show');
+            document.getElementById('gachaClosingNote').innerText = '';
+            document.getElementById('gachaTrayHint').innerText = 'ちょっとコインをタップ →投入口へ';
+            buildGachaTray();
+            document.getElementById('gachaOverlay').classList.add('open');
+        }
+
+        function closeGacha() {
+            document.getElementById('gachaOverlay').classList.remove('open');
+        }
+
+        function buildGachaTray() {
+            const tray = document.getElementById('gachaCoinTray');
+            tray.innerHTML = '';
+            for (let i = 0; i < NEEDED - insertedCoins; i++) {
+                const c = document.createElement('div');
+                c.className = 'gacha-coin';
+                c.innerText = '🪙';
+                c.addEventListener('click', () => insertGachaCoin(c));
+                tray.appendChild(c);
+            }
+            if (NEEDED - insertedCoins === 0) {
+                document.getElementById('gachaTrayHint').innerText = 'ぜんぶ入った！レバーを回そう';
+            }
+        }
+
+        function insertGachaCoin(coinEl) {
+            if (insertedCoins >= NEEDED) return;
+            const coinSlot = document.getElementById('gachaCoinSlot');
+            const startRect = coinEl.getBoundingClientRect();
+            const slotRect = coinSlot.getBoundingClientRect();
+
+            coinEl.classList.add('flying');
+            coinEl.style.top = startRect.top + 'px';
+            coinEl.style.left = startRect.left + 'px';
+            document.body.appendChild(coinEl);
+
+            requestAnimationFrame(() => {
+                coinEl.style.top = (slotRect.top + 2) + 'px';
+                coinEl.style.left = (slotRect.left + slotRect.width / 2 - 15) + 'px';
+                coinEl.style.transform = 'scale(0.3)';
+                coinEl.style.opacity = '0';
+            });
+
+            coinSlot.classList.add('lit');
+            setTimeout(() => coinSlot.classList.remove('lit'), 300);
+
+            setTimeout(() => {
+                coinEl.remove();
+                insertedCoins++;
+                document.querySelectorAll('.gacha-pdot')[insertedCoins - 1].classList.add('filled');
+                buildGachaTray();
+                if (insertedCoins >= NEEDED) {
+                    document.getElementById('gachaLever').classList.remove('disabled');
+                }
+            }, 420);
+        }
+
+        function pullLever() {
+            ensureCurrentMonth();
+            piggyData.gachaCount++;
+            savePiggy();
+
+            const lever = document.getElementById('gachaLever');
+            const dome = document.getElementById('gachaDome');
+            lever.classList.add('pulled');
+            dome.classList.add('spinning');
+            document.getElementById('gachaResultCard').classList.remove('show');
+
+            setTimeout(() => {
+                dome.classList.remove('spinning');
+                lever.classList.remove('pulled');
+                showGachaResult();
+            }, 1400);
+        }
+
+        function pickReward() {
+            const pool = (piggyData.bearCount >= MAX_BEAR_PER_MONTH)
+                ? rewards.filter(r => r.emoji !== "🐻")
+                : rewards;
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function showGachaResult() {
+            const r = pickReward();
+            if (r.emoji === "🐻") piggyData.bearCount++;
+            document.getElementById('gachaResultAnimal').innerText = r.emoji;
+            document.getElementById('gachaResultName').innerText = r.name;
+            document.getElementById('gachaResultAmount').innerText = r.amount > 0 ? `+${r.amount}円` : '+0円';
+            document.getElementById('gachaResultCard').classList.add('show');
+            addToPiggy(r.amount);
+
+            // ちょっとコインを5まい消費
+            coinData.coins = Math.max(0, coinData.coins - NEEDED);
+            saveCoinWallet();
+            renderWallet();
+
+            let count = 3;
+            const closingNote = document.getElementById('gachaClosingNote');
+            closingNote.innerText = `${count}びょうで とじます…`;
+            const tick = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    closingNote.innerText = `${count}びょうで とじます…`;
+                } else {
+                    clearInterval(tick);
+                    closeGacha();
+                    setCharSpeechSafe("つぎのごほうびまで、また今日のタスクをがんばろうね！");
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
