@@ -181,31 +181,28 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             text-align: center;
             overflow: hidden;
         }
 
         .char-display {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             font-family: 'Yusei Magic', sans-serif;
-            font-size: 13px;
-            color: #fff;
-            margin: 8px 0;
-            min-height: 16px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            background: var(--accent-pink);
-            opacity: 0.85;
-            width: auto;
+            font-size: 12px;
+            color: var(--text-main);
+            opacity: 0.8;
+            margin: 0 0 14px;
+            letter-spacing: 0.02em;
         }
 
         .speech-bubble {
             background: #f5f2ec;
             border-radius: 18px;
-            padding: 14px;
-            margin-top: 8px;
+            padding: 16px 18px;
             font-size: 14px;
+            line-height: 1.6;
             color: #857c72;
             position: relative;
             width: 100%;
@@ -376,17 +373,37 @@
         .piggy-card {
             text-align: center;
         }
+        .piggy-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
         .piggy-month {
             font-family: 'Yusei Magic', sans-serif;
             font-size: 11px;
             color: #9a9388;
-            margin-bottom: 6px;
+        }
+        .piggy-gacha-pill {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 10px;
+            color: #9a8255;
+            background: #f3e9d6;
+            border-radius: 12px;
+            padding: 3px 10px;
         }
         .piggy-amount {
             font-family: 'Yusei Magic', sans-serif;
-            font-size: 32px;
+            font-size: 34px;
             color: var(--accent-pink);
-            margin-bottom: 6px;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .piggy-yen {
+            font-size: 16px;
+            margin-left: 2px;
+            opacity: 0.7;
         }
         .piggy-amount.bump {
             animation: piggybump 0.4s ease;
@@ -396,33 +413,38 @@
             40% { transform: scale(1.18); }
             100% { transform: scale(1); }
         }
-        .piggy-sub {
-            font-size: 10.5px;
-            color: #b3aba0;
+        .piggy-divider {
+            width: 36px;
+            height: 2px;
+            background: var(--line);
+            border-radius: 2px;
+            margin: 14px auto 16px;
         }
 
         /* お財布(ちょっとコイン) */
         .wallet-bar {
-            margin-top: 16px;
             background: #f5f2ec;
-            border: 2px dashed var(--accent-yellow);
             border-radius: 16px;
-            padding: 12px 14px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, background 0.2s;
+        }
+        .wallet-bar:not(.disabled):active {
+            transform: scale(0.98);
         }
         .wallet-bar.disabled {
             cursor: default;
-            opacity: 0.7;
+            opacity: 0.55;
         }
         .wallet-left {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 13px;
+            font-size: 12.5px;
+            color: var(--text-main);
         }
         .coin-dots {
             display: flex;
@@ -774,10 +796,12 @@
 
         <div class="card piggy-card">
             <h2 style="justify-content:center;">🐷 がんばりっこ ちょきんばこ</h2>
-            <div class="piggy-month" id="piggyMonth">6月分</div>
-            <div class="piggy-amount"><span id="piggyTotal">0</span>円</div>
-            <div class="piggy-sub" id="piggyGachaCount">今月のガチャ：0/6回</div>
-            <div class="piggy-sub">月がかわると自動で0円にリセットされるよ</div>
+            <div class="piggy-top-row">
+                <span class="piggy-month" id="piggyMonth" title="月がかわると自動で0円にリセットされます">6月分</span>
+                <span class="piggy-gacha-pill" id="piggyGachaCount">ガチャ 0/6</span>
+            </div>
+            <div class="piggy-amount"><span id="piggyTotal">0</span><span class="piggy-yen">円</span></div>
+            <div class="piggy-divider"></div>
 
             <div class="wallet-bar disabled" id="walletBar">
                 <div class="wallet-left">
@@ -1428,7 +1452,7 @@
             const now = new Date();
             document.getElementById('piggyMonth').innerText = `${now.getMonth() + 1}月分`;
             document.getElementById('piggyTotal').innerText = piggyData.total;
-            document.getElementById('piggyGachaCount').innerText = `今月のガチャ：${piggyData.gachaCount}/${MAX_GACHA_PER_MONTH}回`;
+            document.getElementById('piggyGachaCount').innerText = `ガチャ ${piggyData.gachaCount}/${MAX_GACHA_PER_MONTH}`;
             if (bump) {
                 const amountEl = document.getElementById('piggyTotal').parentElement;
                 amountEl.classList.remove('bump');
