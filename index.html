@@ -1481,10 +1481,21 @@
         }
 
         // Service Worker登録(オフライン対応・ホーム画面追加対応)
+        // 古いService Worker(キャッシュが残ったまま更新されないもの)を解除してから、
+        // 新しいファイル名で登録し直すことで、即座に切り替える
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js').catch((err) => {
-                    console.error('Service Worker登録失敗:', err);
+                navigator.serviceWorker.getRegistrations().then((regs) => {
+                    const hasOld = regs.some((r) => r.active && r.active.scriptURL.endsWith('/service-worker.js'));
+                    Promise.all(
+                        regs
+                            .filter((r) => r.active && r.active.scriptURL.endsWith('/service-worker.js'))
+                            .map((r) => r.unregister())
+                    ).then(() => {
+                        navigator.serviceWorker.register('./service-worker-v2.js').catch((err) => {
+                            console.error('Service Worker登録失敗:', err);
+                        });
+                    });
                 });
             });
         }
