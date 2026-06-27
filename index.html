@@ -186,6 +186,17 @@
             overflow: hidden;
         }
 
+        .char-portrait {
+            width: 110px;
+            height: 110px;
+            margin-bottom: 6px;
+        }
+        .char-portrait svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         .char-display {
             display: inline-flex;
             align-items: center;
@@ -412,13 +423,6 @@
             0% { transform: scale(1); }
             40% { transform: scale(1.18); }
             100% { transform: scale(1); }
-        }
-        .piggy-divider {
-            width: 36px;
-            height: 2px;
-            background: var(--line);
-            border-radius: 2px;
-            margin: 14px auto 16px;
         }
 
         /* お財布(ちょっとコイン) */
@@ -790,6 +794,7 @@
 
         <div class="card gacha-card" id="gachaCard">
             <h2>🎁 きょうのとなり</h2>
+            <div class="char-portrait" id="charPortrait"></div>
             <div class="char-display" id="charName">タイマー停止で出現！</div>
             <div class="speech-bubble" id="charSpeech">ここにキャラクターのセリフが表示されて、iPadが喋るよ！</div>
         </div>
@@ -801,11 +806,13 @@
                 <span class="piggy-gacha-pill" id="piggyGachaCount">ガチャ 0/6</span>
             </div>
             <div class="piggy-amount"><span id="piggyTotal">0</span><span class="piggy-yen">円</span></div>
-            <div class="piggy-divider"></div>
+        </div>
 
+        <div class="card wallet-card">
+            <h2 style="justify-content:center;">👛 おふみさいふ</h2>
             <div class="wallet-bar disabled" id="walletBar">
                 <div class="wallet-left">
-                    👛 ちょっとコイン
+                    ちょっとコイン
                     <div class="coin-dots" id="coinDots"></div>
                     <span id="walletText">0/5</span>
                 </div>
@@ -934,12 +941,105 @@
         let lastAlarmSource = 'time'; // 'time' = 指定時刻アラーム, 'countdown' = カウントダウン終了
 
         const characterList = [
-            { name: "ツンデレな幼馴染風", speech: "べ、別にアンタの心配なんてしてないんだからね！でも…タスクが残ってるなら、さっさと終わらせなさいよ！今日のメニューはこれよ！：", pitch: 1.2, rate: 1.1 },
-            { name: "超スパルタ塾講師風", speech: "受験は甘くありません！さあ、今日も1点をもぎ取るために全力で集中しますよ！本日のタスクを読み上げます。起立、注目！：", pitch: 0.9, rate: 1.2 },
-            { name: "戦国武将風", speech: "いざ出陣じゃーッ！今日の試練を乗り越え、天下統一の道を突き進むのじゃ！本日の軍令を伝える！：", pitch: 0.7, rate: 0.9 },
-            { name: "博多弁の可愛い先輩風", speech: "今日もいっしょに勉強がんばろ？がんばるキミのこと、ずっと応援しとるけんね。今日のやること、教えるね！：", pitch: 1.1, rate: 1.0 },
-            { name: "偉そうなイエネコ風", speech: "ふにゃ〜あ。人間よ、我の気が変わらぬうちにこれを片付けるが良い。今日の仕事ニャ：", pitch: 1.3, rate: 0.9 },
-            { name: "上品なお嬢様風", speech: "ごきげんよう。本日も素晴らしい学問の時間を共に過ごしましょう。それでは、本日の課題でございます：", pitch: 1.1, rate: 1.0 }
+            { name: "ツンデレな幼馴染風", speech: "べ、別にアンタの心配なんてしてないんだからね！でも…タスクが残ってるなら、さっさと終わらせなさいよ！今日のメニューはこれよ！：", pitch: 1.2, rate: 1.1,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="130" rx="58" ry="50" fill="#f7f1e8"/>
+                <ellipse cx="68" cy="62" rx="16" ry="38" fill="#f7f1e8"/>
+                <ellipse cx="132" cy="62" rx="16" ry="38" fill="#f7f1e8"/>
+                <ellipse cx="68" cy="58" rx="8" ry="22" fill="#e8b9b0"/>
+                <ellipse cx="132" cy="58" rx="8" ry="22" fill="#e8b9b0"/>
+                <path d="M58 38 L74 30 L70 46 Z" fill="#c0392b"/>
+                <path d="M78 38 L62 30 L66 46 Z" fill="#d9534f"/>
+                <circle cx="68" cy="38" r="4" fill="#a93226"/>
+                <ellipse cx="118" cy="122" rx="4.5" ry="6" fill="#6b6259"/>
+                <ellipse cx="134" cy="122" rx="4.5" ry="6" fill="#6b6259"/>
+                <ellipse cx="112" cy="138" rx="7" ry="4" fill="#f1c6bd" opacity="0.7"/>
+                <path d="M118 148 Q126 152 134 148" stroke="#6b6259" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </svg>` },
+            { name: "超スパルタ塾講師風", speech: "受験は甘くありません！さあ、今日も1点をもぎ取るために全力で集中しますよ！本日のタスクを読み上げます。起立、注目！：", pitch: 0.9, rate: 1.2,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="132" rx="60" ry="52" fill="#cda77c"/>
+                <circle cx="60" cy="70" r="20" fill="#cda77c"/>
+                <circle cx="140" cy="70" r="20" fill="#cda77c"/>
+                <circle cx="60" cy="70" r="10" fill="#e9d2b4"/>
+                <circle cx="140" cy="70" r="10" fill="#e9d2b4"/>
+                <path d="M48 95 Q100 78 152 95" stroke="#c0392b" stroke-width="12" fill="none"/>
+                <path d="M150 92 L168 86 L162 104 Z" fill="#c0392b"/>
+                <path d="M82 112 L96 118" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <path d="M118 118 L132 112" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="88" cy="126" r="5" fill="#3e2f22"/>
+                <circle cx="126" cy="126" r="5" fill="#3e2f22"/>
+                <ellipse cx="106" cy="150" rx="16" ry="13" fill="#5a4632"/>
+                <ellipse cx="106" cy="154" rx="10" ry="6" fill="#c0392b"/>
+              </svg>` },
+            { name: "戦国武将風", speech: "いざ出陣じゃーッ！今日の試練を乗り越え、天下統一の道を突き進むのじゃ！本日の軍令を伝える！：", pitch: 0.7, rate: 0.9,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="138" rx="58" ry="48" fill="#d9c4a3"/>
+                <ellipse cx="100" cy="150" rx="34" ry="24" fill="#8a7256" opacity="0.35"/>
+                <circle cx="64" cy="92" r="18" fill="#8a7256"/>
+                <circle cx="136" cy="92" r="18" fill="#8a7256"/>
+                <path d="M58 88 Q100 50 142 88 L150 100 L50 100 Z" fill="#9aa98a"/>
+                <path d="M40 96 Q100 78 160 96 L156 108 Q100 92 44 108 Z" fill="#c8a85a"/>
+                <path d="M30 92 L50 84 L46 104 Z" fill="#c8a85a"/>
+                <path d="M170 92 L150 84 L154 104 Z" fill="#c8a85a"/>
+                <circle cx="100" cy="86" r="6" fill="#c8a85a"/>
+                <path d="M82 122 L94 126" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <path d="M118 126 L130 122" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="88" cy="134" r="4.5" fill="#3e2f22"/>
+                <circle cx="124" cy="134" r="4.5" fill="#3e2f22"/>
+                <path d="M92 152 Q106 162 120 152" stroke="#5a4632" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <polygon points="100,154 104,162 96,162" fill="#fff"/>
+              </svg>` },
+            { name: "博多弁の可愛い先輩風", speech: "今日もいっしょに勉強がんばろ？がんばるキミのこと、ずっと応援しとるけんね。今日のやること、教えるね！：", pitch: 1.1, rate: 1.0,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="134" rx="58" ry="50" fill="#f3d9c4"/>
+                <polygon points="58,96 78,60 90,98" fill="#f3d9c4"/>
+                <polygon points="142,96 122,60 110,98" fill="#f3d9c4"/>
+                <polygon points="64,92 78,68 86,94" fill="#e8b9a0"/>
+                <polygon points="136,92 122,68 114,94" fill="#e8b9a0"/>
+                <circle cx="66" cy="78" r="6" fill="#e8a6b8"/>
+                <circle cx="58" cy="82" r="6" fill="#e8a6b8"/>
+                <circle cx="74" cy="84" r="6" fill="#e8a6b8"/>
+                <circle cx="62" cy="90" r="6" fill="#e8a6b8"/>
+                <circle cx="66" cy="82" r="5" fill="#f4cf3e"/>
+                <path d="M80 124 Q88 130 96 124" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M104 124 Q112 130 120 124" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <ellipse cx="76" cy="140" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <ellipse cx="124" cy="140" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <path d="M92 144 Q100 150 108 144" stroke="#6b5443" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M40 132 L62 130 M40 142 L62 140" stroke="#d9b9a3" stroke-width="2" stroke-linecap="round"/>
+                <path d="M160 132 L138 130 M160 142 L138 140" stroke="#d9b9a3" stroke-width="2" stroke-linecap="round"/>
+              </svg>` },
+            { name: "偉そうなイエネコ風", speech: "ふにゃ〜あ。人間よ、我の気が変わらぬうちにこれを片付けるが良い。今日の仕事ニャ：", pitch: 1.3, rate: 0.9,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="136" rx="58" ry="50" fill="#e9cf6e"/>
+                <polygon points="58,98 78,58 92,100" fill="#e9cf6e"/>
+                <polygon points="142,98 122,58 108,100" fill="#e9cf6e"/>
+                <polygon points="64,94 78,68 86,96" fill="#d9b94a"/>
+                <polygon points="136,94 122,68 114,96" fill="#d9b94a"/>
+                <polygon points="78,72 86,52 94,68 100,48 106,68 114,52 122,72" fill="#e9c64f" stroke="#c9a23a" stroke-width="2"/>
+                <circle cx="86" cy="58" r="3" fill="#d9534f"/>
+                <circle cx="100" cy="54" r="3" fill="#5cb85c"/>
+                <circle cx="114" cy="58" r="3" fill="#5b9bd5"/>
+                <path d="M78 124 Q88 116 98 124" stroke="#6b5443" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M102 124 Q112 116 122 124" stroke="#6b5443" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M90 150 Q100 144 110 150" stroke="#6b5443" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M150 168 Q176 160 172 132 Q170 150 150 158" fill="#e9cf6e" stroke="#d9b94a" stroke-width="2"/>
+              </svg>` },
+            { name: "上品なお嬢様風", speech: "ごきげんよう。本日も素晴らしい学問の時間を共に過ごしましょう。それでは、本日の課題でございます：", pitch: 1.1, rate: 1.0,
+              svg: `<svg viewBox="0 0 200 200">
+                <path d="M66 58 Q40 90 58 134 Q74 124 76 92 Z" fill="#e0bf90"/>
+                <path d="M134 58 Q160 90 142 134 Q126 124 124 92 Z" fill="#e0bf90"/>
+                <path d="M72 70 Q56 92 66 122 Q74 116 74 94 Z" fill="#f3e3c8"/>
+                <path d="M128 70 Q144 92 134 122 Q126 116 126 94 Z" fill="#f3e3c8"/>
+                <ellipse cx="100" cy="138" rx="58" ry="50" fill="#f3e3c8"/>
+                <path d="M78 126 Q86 132 94 126" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M106 126 Q114 132 122 126" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <ellipse cx="74" cy="142" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <ellipse cx="126" cy="142" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <ellipse cx="100" cy="148" rx="5" ry="3.5" fill="#8a6f52"/>
+                <path d="M92 156 Q100 162 108 156" stroke="#6b5443" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </svg>` }
         ];
 
         let audioCtx = null;
@@ -1157,6 +1257,8 @@
         function runGacha() {
             const randomChar = characterList[Math.floor(Math.random() * characterList.length)];
             document.getElementById('charName').innerText = `今日の担当：${randomChar.name}`;
+            const portraitEl = document.getElementById('charPortrait');
+            if (portraitEl) portraitEl.innerHTML = randomChar.svg;
 
             const activeTasks = tasks.filter(t => !t.done).map(t => t.text);
 
@@ -1499,7 +1601,7 @@
             renderWallet();
 
             if (coinData.coins >= NEEDED) {
-                setCharSpeechSafe("きょうのタスク、ぜんぶできたね！ちょっとコインが5まいたまったよ！おさいふをタップしてガチャしてみよう！");
+                setCharSpeechSafe("きょうのタスク、ぜんぶできたね！ちょっとコインが5まいたまったよ！おふみさいふをタップしてガチャしてみよう！");
             } else {
                 const left = NEEDED - coinData.coins;
                 setCharSpeechSafe(`きょうのタスク、ぜんぶできたね！ちょっとコインを1まいゲット！あと${left}まいでガチャできるよ！`);
