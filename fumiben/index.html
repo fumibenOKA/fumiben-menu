@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ふみ勉！本日のタスク管理</title>
+
+    <!-- PWA設定 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a8b89a">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- iPad/iOS用設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ふみ勉">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+    <!-- favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Zen+Maru+Gothic:wght@500;700&display=swap');
+
+        :root {
+            --bg-color: #f2efe9;
+            --card-bg: #fbf9f4;
+            --text-main: #6b6259;
+            --gray: #c7c1b7;
+            --line: #e2ddd3;
+            --accent-pink: #d9b6ab;   /* rose */
+            --accent-blue: #a8b89a;   /* moss（青枠の代わりに使用） */
+            --accent-yellow: #cdbfa0; /* 落ち着いたサンド系 */
+            --accent-green: #a8b89a; /* moss */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Zen Maru Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .page-title {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 20px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
+        /* 画面全体のコンテナ */
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        /* パネル共通スタイル */
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 22px;
+            box-shadow: 0 4px 14px rgba(107, 98, 89, 0.06);
+            border: 2px solid var(--line);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+            background: var(--accent-blue);
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.4;
+        }
+
+        h2 {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 16px;
+            font-weight: normal;
+            color: var(--text-main);
+            opacity: 0.85;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* タイマーセクション */
+        .timer-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .timer-circle {
+            position: relative;
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-blue) 360deg, #ece8e0 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: inset 0 0 8px rgba(107, 98, 89, 0.08);
+        }
+
+        .timer-inner {
+            width: 142px;
+            height: 142px;
+            background: var(--card-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 30px;
+            color: var(--text-main);
+        }
+
+        .timer-controls button {
+            padding: 11px 22px;
+            font-size: 14px;
+            font-family: 'Yusei Magic', sans-serif;
+            border: 2px solid var(--accent-blue);
+            border-radius: 50px;
+            background-color: #eef2e9;
+            color: var(--text-main);
+            cursor: pointer;
+            margin: 4px;
+        }
+
+        .timer-controls button:active {
+            transform: scale(0.95);
+        }
+
+        .alarm-inputs {
+            margin-bottom: 12px;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .alarm-inputs div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .alarm-inputs input {
+            font-size: 16px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            padding: 4px 8px;
+            border-radius: 10px;
+            border: 2px solid var(--line);
+            background: #f5f2ec;
+            color: var(--text-main);
+            text-align: center;
+        }
+        .input-time { width: 110px; }
+        .input-min { width: 60px; }
+
+        /* ガチャ・キャラクターセクション */
+        .gacha-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .char-portrait {
+            width: 110px;
+            height: 110px;
+            margin-bottom: 6px;
+        }
+        .char-portrait svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .char-display {
+            display: inline-flex;
+            align-items: center;
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 12px;
+            color: var(--text-main);
+            opacity: 0.8;
+            margin: 0 0 14px;
+            letter-spacing: 0.02em;
+        }
+
+        .speech-bubble {
+            background: #f5f2ec;
+            border-radius: 18px;
+            padding: 16px 18px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #857c72;
+            position: relative;
+            width: 100%;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        /* タスクセクション */
+        .task-list {
+            list-style: none;
+            max-height: none;
+            overflow-y: visible;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            background: #f6f4ee;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 2px solid var(--line);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .task-item:active {
+            transform: scale(0.98);
+        }
+
+        .task-item.completed {
+            background: #eef2e9;
+            border-color: var(--accent-blue);
+            color: #93a187;
+            text-decoration: line-through;
+            opacity: 0.7;
+            animation: pop 0.3s ease-in-out;
+        }
+
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--gray);
+            background: #f5f2ec;
+            margin-right: 16px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .completed .task-checkbox {
+            background-color: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .completed .task-checkbox::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .task-delete {
+            color: var(--gray) !important;
+            margin-left: 6px;
+            font-size: 18px;
+            padding: 0 4px;
+        }
+
+        .task-edit {
+            margin-left: 6px;
+            font-size: 16px;
+            padding: 0 4px;
+            opacity: 0.7;
+        }
+
+        .task-handle {
+            margin-left: 10px;
+            font-size: 20px;
+            color: var(--gray);
+            padding: 0 6px;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        /* データ入力用隠しフォーム */
+        .import-section {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .import-toggle {
+            align-self: flex-start;
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: underline;
+            text-align: left;
+            font-family: 'Zen Maru Gothic', sans-serif;
+        }
+        
+        .import-area {
+            display: none;
+            margin-top: 4px;
+        }
+        
+        .import-area input {
+            width: 70%;
+            padding: 8px 12px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--line);
+            background: #f5f2ec;
+            color: var(--text-main);
+        }
+        .import-area input::placeholder {
+            color: #c7c1b7;
+        }
+        
+        .import-area button {
+            padding: 8px 14px;
+            font-size: 14px;
+            font-family: 'Yusei Magic', sans-serif;
+            background: var(--gray);
+            color: white;
+            border: none;
+            border-radius: 10px;
+        }
+
+        /* あさのしたく一括チェックボタン(省スペース) */
+        .morning-btn {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 10px;
+            font-weight: normal;
+            color: #8a7a52;
+            background: #f3e9d6;
+            border: 1.5px solid var(--accent-yellow);
+            border-radius: 20px;
+            padding: 5px 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .morning-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* リンクランチャーセクション */
+
+        /* ===== がんばりっこ ちょきんばこ ===== */
+        .piggy-card {
+            text-align: center;
+        }
+        .piggy-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .piggy-month {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 11px;
+            color: #9a9388;
+        }
+        .piggy-gacha-pill {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 10px;
+            color: #9a8255;
+            background: #f3e9d6;
+            border-radius: 12px;
+            padding: 3px 10px;
+        }
+        .piggy-amount {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 34px;
+            color: var(--accent-pink);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .piggy-yen {
+            font-size: 16px;
+            margin-left: 2px;
+            opacity: 0.7;
+        }
+        .piggy-amount.bump {
+            animation: piggybump 0.4s ease;
+        }
+        @keyframes piggybump {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+
+        /* お財布(ちょっとコイン) */
+        .wallet-bar {
+            background: #f5f2ec;
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: opacity 0.2s, background 0.2s;
+        }
+        .wallet-bar:not(.disabled):active {
+            transform: scale(0.98);
+        }
+        .wallet-bar.disabled {
+            cursor: default;
+            opacity: 0.55;
+        }
+        .wallet-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            color: var(--text-main);
+        }
+        .coin-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .coin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff0c2, #e0a83a 75%);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.12);
+            border: 1px solid rgba(150, 110, 30, 0.25);
+        }
+        .coin-dot:nth-child(1) { background: radial-gradient(circle at 35% 30%, #fff3cc, #efc35c 75%); }
+        .coin-dot:nth-child(2) { background: radial-gradient(circle at 35% 30%, #ffeec0, #e8b347 75%); }
+        .coin-dot:nth-child(3) { background: radial-gradient(circle at 35% 30%, #ffe8b0, #e0a23a 75%); }
+        .coin-dot:nth-child(4) { background: radial-gradient(circle at 35% 30%, #ffe1a0, #d6932e 75%); }
+        .coin-dot:nth-child(5) { background: radial-gradient(circle at 35% 30%, #ffd98e, #c98322 75%); }
+        .coin-dot.empty {
+            background: #e6e0d3;
+            box-shadow: none;
+            border: 1px dashed #cdc4b2;
+        }
+        .wallet-arrow {
+            color: var(--gray);
+            font-size: 13px;
+        }
+
+        /* ===== ガチャ オーバーレイ ===== */
+        .gacha-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(40, 35, 28, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            z-index: 999;
+        }
+        .gacha-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .gacha-modal {
+            width: 88%;
+            max-width: 330px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 20px 18px 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transform: scale(0.85) translateY(10px);
+            transition: transform 0.25s;
+            position: relative;
+        }
+        .gacha-overlay.open .gacha-modal {
+            transform: scale(1) translateY(0);
+        }
+        .gacha-modal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .gacha-modal-title {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        .gacha-cancel-btn {
+            font-size: 11px;
+            color: var(--gray);
+            background: none;
+            border: none;
+            text-decoration: underline;
+            cursor: pointer;
+            font-family: 'Zen Maru Gothic', sans-serif;
+        }
+        .gacha-machine-wrap {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .gacha-dome {
+            width: 120px;
+            height: 92px;
+            border-radius: 60px 60px 12px 12px;
+            background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.95), rgba(168,184,154,0.18) 65%);
+            border: 3px solid var(--line);
+            position: relative;
+            margin-bottom: -6px;
+            overflow: hidden;
+        }
+        .gacha-capsule {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .gc1 { background: linear-gradient(180deg,#f0d9d2,var(--accent-pink)); top:12px; left:8px; }
+        .gc2 { background: linear-gradient(180deg,#fff2cf,var(--accent-yellow)); top:30px; left:42px; }
+        .gc3 { background: linear-gradient(180deg,#dbe6d4,var(--accent-blue)); top:8px; left:76px; }
+        .gc4 { background: linear-gradient(180deg,#e8e2d4,var(--gray)); top:44px; left:12px; }
+        .gc5 { background: linear-gradient(180deg,#ecd9e4,#c79bb0); top:46px; left:78px; }
+        .gacha-dome.spinning .gacha-capsule {
+            animation: gachaShuffle 0.5s linear infinite;
+        }
+        @keyframes gachaShuffle {
+            0% { transform: translate(0,0) rotate(0deg); }
+            25% { transform: translate(4px,-3px) rotate(90deg); }
+            50% { transform: translate(-3px,4px) rotate(180deg); }
+            75% { transform: translate(3px,3px) rotate(270deg); }
+            100% { transform: translate(0,0) rotate(360deg); }
+        }
+        .gacha-machine-body {
+            width: 146px;
+            background: var(--accent-yellow);
+            border-radius: 0 0 16px 16px;
+            padding: 10px 10px 14px;
+            box-shadow: 0 5px 0 #b0a382;
+        }
+        .gacha-slot-label {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 9px;
+            color: #5c5140;
+            text-align: center;
+            margin-bottom: 7px;
+        }
+        .gacha-coin-slot {
+            width: 44px;
+            height: 14px;
+            background: #6b6259;
+            border-radius: 5px;
+            margin: 0 auto 10px;
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.4);
+        }
+        .gacha-coin-slot.lit {
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.4), 0 0 10px 2px var(--accent-pink);
+        }
+        .gacha-lever {
+            width: 60px;
+            height: 22px;
+            background: var(--accent-pink);
+            border-radius: 11px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #fff;
+            font-family: 'Yusei Magic', sans-serif;
+            box-shadow: 0 3px 0 #c19c8f;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .gacha-lever.disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        .gacha-lever.pulled {
+            animation: gachaLeverSpin 1.4s ease-in-out;
+        }
+        @keyframes gachaLeverSpin {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(340deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .gacha-coin-tray {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+            min-height: 34px;
+        }
+        .gacha-coin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #fff2cf, var(--accent-yellow) 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 2px 0 #b0a382;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.18s;
+        }
+        .gacha-coin:active {
+            transform: scale(0.9);
+        }
+        .gacha-coin.flying {
+            position: fixed;
+            transition: top 0.4s cubic-bezier(.4,0,.2,1), left 0.4s cubic-bezier(.4,0,.2,1), opacity 0.4s, transform 0.4s;
+            z-index: 1000;
+        }
+        .gacha-tray-hint {
+            text-align: center;
+            font-size: 10.5px;
+            color: #9a9388;
+            margin-top: 5px;
+        }
+        .gacha-progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 12px;
+        }
+        .gacha-pdot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e6e0d3;
+        }
+        .gacha-pdot.filled {
+            background: var(--accent-pink);
+        }
+        .gacha-result-card {
+            margin-top: 14px;
+            background: #fff;
+            border-radius: 16px;
+            border: 2px dashed var(--accent-yellow);
+            padding: 16px;
+            text-align: center;
+            display: none;
+        }
+        .gacha-result-card.show {
+            display: block;
+            animation: gachaPop 0.35s ease;
+        }
+        @keyframes gachaPop {
+            0% { transform: scale(0.7); opacity: 0; }
+            60% { transform: scale(1.08); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .gacha-result-animal {
+            font-size: 38px;
+            margin-bottom: 4px;
+        }
+        .gacha-result-name {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        .gacha-result-amount {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 20px;
+            color: var(--accent-pink);
+        }
+        .gacha-result-sub {
+            font-size: 10.5px;
+            color: #9a9388;
+            margin-top: 5px;
+        }
+        .gacha-closing-note {
+            text-align: center;
+            font-size: 10px;
+            color: #b3aba0;
+            margin-top: 8px;
+        }
+
+        /* リンクランチャーセクション */
+        .launcher-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .launcher-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            border-radius: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(107, 98, 89, 0.08);
+            transition: transform 0.2s;
+            opacity: 0.92;
+        }
+
+        .launcher-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-ecc { background-color: #7b8ea3; }
+        .btn-ytm { background-color: #c08a8a; }
+        .btn-gemini-eng { background-color: #d3a36b; }
+        .btn-gemini-his { background-color: #a98b6a; }
+        .btn-gemini-math { background-color: #8a9fc0; }
+        .btn-gemini-sci { background-color: #93a98a; }
+        .btn-gemini-soc { background-color: #a692b3; }
+
+        .launcher-btn span {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 11px;
+            font-weight: normal;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        /* アニメーション */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(217, 182, 171, 0.6); }
+            70% { box-shadow: 0 0 0 18px rgba(217, 182, 171, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(217, 182, 171, 0); }
+        }
+
+        .alarm-active {
+            animation: pulse 1.5s infinite;
+            background-color: #f3e5e0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-title">ふみ勉、すみっこで。</div>
+    <div class="container">
+        <div class="card timer-card">
+            <h2>⏱️ いま、なんじ　<span id="liveClock" style="font-size:22px;"></span></h2>
+            <div class="alarm-inputs">
+                <div>
+                    <label>よびかけのじかん: </label>
+                    <input type="time" id="alarmTime" class="input-time" value="07:10">
+                </div>
+                <div>
+                    <label>そっとタイマー: </label>
+                    <input type="number" id="timerDuration" class="input-min" value="15" min="1" max="180"> 分
+                </div>
+            </div>
+            <div class="timer-circle" id="timerCircle">
+                <div class="timer-inner" id="timerText">25:00</div>
+            </div>
+            <div class="timer-controls">
+                <button id="startTimerBtn" onclick="toggleTimer()">カウントダウン開始</button>
+                <button id="resetTimerBtn" style="background-color:#9aa5b1;" onclick="resetTimer()">リセット</button>
+                <button id="stopAlarmBtn" style="display:none; background-color:#b5685a; color:#fff; border-color:#b5685a; font-weight:bold;" onclick="stopAlarm()">アラームを止めてガチャ！</button>
+            </div>
+        </div>
+
+        <div class="card gacha-card" id="gachaCard">
+            <h2>🎁 きょうのとなり</h2>
+            <div class="char-portrait" id="charPortrait"></div>
+            <div class="char-display" id="charName">タイマー停止で出現！</div>
+            <div class="speech-bubble" id="charSpeech">ここにキャラクターのセリフが表示されて、iPadが喋るよ！</div>
+        </div>
+
+        <div class="card piggy-card">
+            <h2 style="justify-content:center;">🐷 がんばりっこ ちょきんばこ</h2>
+            <div class="piggy-top-row">
+                <span class="piggy-month" id="piggyMonth" title="月がかわると自動で0円にリセットされます">6月分</span>
+                <span class="piggy-gacha-pill" id="piggyGachaCount">ガチャ 0/6</span>
+            </div>
+            <div class="piggy-amount"><span id="piggyTotal">0</span><span class="piggy-yen">円</span></div>
+        </div>
+
+        <div class="card wallet-card">
+            <h2 style="justify-content:center;">👛 おふみさいふ</h2>
+            <div class="wallet-bar disabled" id="walletBar">
+                <div class="wallet-left">
+                    ちょっとコイン
+                    <div class="coin-dots" id="coinDots"></div>
+                    <span id="walletText">0/5</span>
+                </div>
+                <div class="wallet-arrow">›</div>
+            </div>
+        </div>
+
+        <div class="card task-card full-width">
+            <h2 style="display:flex; justify-content:space-between; align-items:center;">
+                <span>📝 きょうのこと、ちょっとずつ</span>
+                <span style="display:flex; gap:6px;">
+                    <button class="morning-btn" onclick="markAllTasksDone()">☀️ あさのしたく</button>
+                    <button class="morning-btn" onclick="tidyUpTasks()">🧹 すみっこへ</button>
+                </span>
+            </h2>
+            <ul class="task-list" id="taskList">
+                </ul>
+
+            <div class="import-section">
+                <span style="font-size:13px; color:#888;">✅ このiPadが、こっそりおぼえておくね</span>
+                <button class="import-toggle" onclick="toggleImportArea()">＋タスクをつくる</button>
+                <div class="import-area" id="importArea">
+                    <input type="text" id="csvTasks" placeholder="宿題、あそび、しごと">
+                    <button onclick="importTasksFromInput()">登録</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card launcher-card full-width">
+            <h2>🚪 いつものおへや</h2>
+            <div class="launcher-grid">
+                <a href="https://pt.eccjrst.jp/App_D/StudentTop/Init?fid=EJC3&tab=0.716799565459043" target="ecc_tab" class="launcher-btn btn-ecc">
+                    ECCストリーミング
+                    <span>上品なネイビー</span>
+                </a>
+                <a href="https://music.youtube.com/" target="_blank" class="launcher-btn btn-ytm">
+                    YouTube Music
+                    <span>スタイリッシュ赤黒</span>
+                </a>
+
+                <a href="https://gemini.google.com/gem/1-WLKowbJCI4zq0J2JTd3Z-mVU2tuWRtq?usp=sharing" target="_blank" class="launcher-btn btn-gemini-eng">
+                    英会話の先生の部屋
+                    <span>パステルオレンジ</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1DWIgUVzzGQ4-7jaC4akMBiQ11-rLr3u-?usp=sharing" target="_blank" class="launcher-btn btn-gemini-his">
+                    歴史の先生の部屋
+                    <span>知的なブラウン</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1vLfju_wGTGxXrzVQO4KKvdDyWTvQodYm?usp=sharing" target="_blank" class="launcher-btn btn-gemini-math">
+                    算数の先生の部屋
+                    <span>論理のブルー</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1bvkGwoP6utwHsjvqXZ9_jullNBgHtjXC?usp=sharing" target="_blank" class="launcher-btn btn-gemini-sci">
+                    理科の先生の部屋
+                    <span>探究のグリーン</span>
+                </a>
+                <a href="https://gemini.google.com/gem/1xEYBviOvy9DaHcFSqYCbom2dr2ZtuIW0?usp=sharing" target="_blank" class="launcher-btn btn-gemini-soc">
+                    ４年社会の先生の部屋
+                    <span>考察のパープル</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ガチャ オーバーレイ ===== -->
+    <div class="gacha-overlay" id="gachaOverlay">
+        <div class="gacha-modal">
+            <div class="gacha-modal-top">
+                <span class="gacha-modal-title">🎰 ごほうびガチャ</span>
+                <button class="gacha-cancel-btn" id="gachaCancelBtn">やめる</button>
+            </div>
+
+            <div class="gacha-machine-wrap">
+                <div class="gacha-dome" id="gachaDome">
+                    <div class="gacha-capsule gc1"></div>
+                    <div class="gacha-capsule gc2"></div>
+                    <div class="gacha-capsule gc3"></div>
+                    <div class="gacha-capsule gc4"></div>
+                    <div class="gacha-capsule gc5"></div>
+                </div>
+                <div class="gacha-machine-body">
+                    <p class="gacha-slot-label">投入口</p>
+                    <div class="gacha-coin-slot" id="gachaCoinSlot"></div>
+                    <div class="gacha-lever disabled" id="gachaLever">レバーを回す</div>
+                </div>
+            </div>
+
+            <div class="gacha-progress-dots" id="gachaProgressDots">
+                <div class="gacha-pdot"></div><div class="gacha-pdot"></div><div class="gacha-pdot"></div>
+                <div class="gacha-pdot"></div><div class="gacha-pdot"></div>
+            </div>
+
+            <div class="gacha-coin-tray" id="gachaCoinTray"></div>
+            <p class="gacha-tray-hint" id="gachaTrayHint">ちょっとコインをタップ →投入口へ</p>
+
+            <div class="gacha-result-card" id="gachaResultCard">
+                <div class="gacha-result-animal" id="gachaResultAnimal">🐻</div>
+                <div class="gacha-result-name" id="gachaResultName">くまさんがでた！</div>
+                <div class="gacha-result-amount" id="gachaResultAmount">+100円</div>
+                <div class="gacha-result-sub">次のお小遣いに加算されるよ</div>
+            </div>
+            <p class="gacha-closing-note" id="gachaClosingNote"></p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        const praiseStyles = [
+            { style: "関西風", pitch: 1.0, rate: 1.05, lines: ["ようやったやん！", "ええ感じやで〜", "その調子や、ええで", "なんやかんや凄いな", "ほんま、よう頑張った"] },
+            { style: "お嬢様風", pitch: 1.2, rate: 0.95, lines: ["見事ですわ", "よくできましたわね", "お見事でございます", "感心いたしましたわ", "さすがでございますね"] },
+            { style: "博多風", pitch: 1.1, rate: 1.05, lines: ["よかよか、よかった", "がんばったとね〜", "うちもうれしいばい", "やったやん、すごいよ", "ええ感じやけん"] },
+            { style: "ネコ風", pitch: 1.3, rate: 1.0, lines: ["すごいニャ！", "やったニャー！", "かっこいいニャ〜", "その調子ニャ！", "えらいニャ、よしよし"] },
+            { style: "執事風", pitch: 0.85, rate: 0.95, lines: ["大変お見事です", "お疲れ様でございました", "素晴らしいかと存じます", "ご立派でございます", "かしこまりました、お見事"] },
+            { style: "おかん風", pitch: 1.05, rate: 1.0, lines: ["よう頑張ったね〜", "えらいえらい！", "ご飯にしようか", "偉いね、ほんとに", "よしよし、いい子や"] },
+            { style: "すみっコ風", pitch: 1.05, rate: 0.95, lines: ["やったあ〜つぎもいけるかも", "すみっこで喜んじゃう", "ちょっと誇らしいかも", "みんなのおかげだね", "ほっこりするね〜"] }
+        ];
+
+        function getDailyPraiseStyle() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+            return praiseStyles[dayOfYear % praiseStyles.length];
+        }
+
+        let lastAlarmSource = 'time'; // 'time' = 指定時刻アラーム, 'countdown' = カウントダウン終了
+
+        const characterList = [
+            { name: "ツンデレな幼馴染風", speech: "べ、別にアンタの心配なんてしてないんだからね！でも…タスクが残ってるなら、さっさと終わらせなさいよ！今日のメニューはこれよ！：", pitch: 1.2, rate: 1.1,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="130" rx="58" ry="50" fill="#f7f1e8"/>
+                <ellipse cx="68" cy="62" rx="16" ry="38" fill="#f7f1e8"/>
+                <ellipse cx="132" cy="62" rx="16" ry="38" fill="#f7f1e8"/>
+                <ellipse cx="68" cy="58" rx="8" ry="22" fill="#e8b9b0"/>
+                <ellipse cx="132" cy="58" rx="8" ry="22" fill="#e8b9b0"/>
+                <path d="M58 38 L74 30 L70 46 Z" fill="#c0392b"/>
+                <path d="M78 38 L62 30 L66 46 Z" fill="#d9534f"/>
+                <circle cx="68" cy="38" r="4" fill="#a93226"/>
+                <ellipse cx="118" cy="122" rx="4.5" ry="6" fill="#6b6259"/>
+                <ellipse cx="134" cy="122" rx="4.5" ry="6" fill="#6b6259"/>
+                <ellipse cx="112" cy="138" rx="7" ry="4" fill="#f1c6bd" opacity="0.7"/>
+                <path d="M118 148 Q126 152 134 148" stroke="#6b6259" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </svg>` },
+            { name: "超スパルタ塾講師風", speech: "受験は甘くありません！さあ、今日も1点をもぎ取るために全力で集中しますよ！本日のタスクを読み上げます。起立、注目！：", pitch: 0.9, rate: 1.2,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="132" rx="60" ry="52" fill="#cda77c"/>
+                <circle cx="60" cy="70" r="20" fill="#cda77c"/>
+                <circle cx="140" cy="70" r="20" fill="#cda77c"/>
+                <circle cx="60" cy="70" r="10" fill="#e9d2b4"/>
+                <circle cx="140" cy="70" r="10" fill="#e9d2b4"/>
+                <path d="M48 95 Q100 78 152 95" stroke="#c0392b" stroke-width="12" fill="none"/>
+                <path d="M150 92 L168 86 L162 104 Z" fill="#c0392b"/>
+                <path d="M82 112 L96 118" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <path d="M118 118 L132 112" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="88" cy="126" r="5" fill="#3e2f22"/>
+                <circle cx="126" cy="126" r="5" fill="#3e2f22"/>
+                <ellipse cx="106" cy="150" rx="16" ry="13" fill="#5a4632"/>
+                <ellipse cx="106" cy="154" rx="10" ry="6" fill="#c0392b"/>
+              </svg>` },
+            { name: "戦国武将風", speech: "いざ出陣じゃーッ！今日の試練を乗り越え、天下統一の道を突き進むのじゃ！本日の軍令を伝える！：", pitch: 0.7, rate: 0.9,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="138" rx="58" ry="48" fill="#d9c4a3"/>
+                <ellipse cx="100" cy="150" rx="34" ry="24" fill="#8a7256" opacity="0.35"/>
+                <circle cx="64" cy="92" r="18" fill="#8a7256"/>
+                <circle cx="136" cy="92" r="18" fill="#8a7256"/>
+                <path d="M58 88 Q100 50 142 88 L150 100 L50 100 Z" fill="#9aa98a"/>
+                <path d="M40 96 Q100 78 160 96 L156 108 Q100 92 44 108 Z" fill="#c8a85a"/>
+                <path d="M30 92 L50 84 L46 104 Z" fill="#c8a85a"/>
+                <path d="M170 92 L150 84 L154 104 Z" fill="#c8a85a"/>
+                <circle cx="100" cy="86" r="6" fill="#c8a85a"/>
+                <path d="M82 122 L94 126" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <path d="M118 126 L130 122" stroke="#5a4632" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="88" cy="134" r="4.5" fill="#3e2f22"/>
+                <circle cx="124" cy="134" r="4.5" fill="#3e2f22"/>
+                <path d="M92 152 Q106 162 120 152" stroke="#5a4632" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <polygon points="100,154 104,162 96,162" fill="#fff"/>
+              </svg>` },
+            { name: "博多弁の可愛い先輩風", speech: "今日もいっしょに勉強がんばろ？がんばるキミのこと、ずっと応援しとるけんね。今日のやること、教えるね！：", pitch: 1.1, rate: 1.0,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="134" rx="58" ry="50" fill="#f3d9c4"/>
+                <polygon points="58,96 78,60 90,98" fill="#f3d9c4"/>
+                <polygon points="142,96 122,60 110,98" fill="#f3d9c4"/>
+                <polygon points="64,92 78,68 86,94" fill="#e8b9a0"/>
+                <polygon points="136,92 122,68 114,94" fill="#e8b9a0"/>
+                <circle cx="66" cy="78" r="6" fill="#e8a6b8"/>
+                <circle cx="58" cy="82" r="6" fill="#e8a6b8"/>
+                <circle cx="74" cy="84" r="6" fill="#e8a6b8"/>
+                <circle cx="62" cy="90" r="6" fill="#e8a6b8"/>
+                <circle cx="66" cy="82" r="5" fill="#f4cf3e"/>
+                <path d="M80 124 Q88 130 96 124" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M104 124 Q112 130 120 124" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <ellipse cx="76" cy="140" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <ellipse cx="124" cy="140" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <path d="M92 144 Q100 150 108 144" stroke="#6b5443" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M40 132 L62 130 M40 142 L62 140" stroke="#d9b9a3" stroke-width="2" stroke-linecap="round"/>
+                <path d="M160 132 L138 130 M160 142 L138 140" stroke="#d9b9a3" stroke-width="2" stroke-linecap="round"/>
+              </svg>` },
+            { name: "偉そうなイエネコ風", speech: "ふにゃ〜あ。人間よ、我の気が変わらぬうちにこれを片付けるが良い。今日の仕事ニャ：", pitch: 1.3, rate: 0.9,
+              svg: `<svg viewBox="0 0 200 200">
+                <ellipse cx="100" cy="136" rx="58" ry="50" fill="#e9cf6e"/>
+                <polygon points="58,98 78,58 92,100" fill="#e9cf6e"/>
+                <polygon points="142,98 122,58 108,100" fill="#e9cf6e"/>
+                <polygon points="64,94 78,68 86,96" fill="#d9b94a"/>
+                <polygon points="136,94 122,68 114,96" fill="#d9b94a"/>
+                <polygon points="78,72 86,52 94,68 100,48 106,68 114,52 122,72" fill="#e9c64f" stroke="#c9a23a" stroke-width="2"/>
+                <circle cx="86" cy="58" r="3" fill="#d9534f"/>
+                <circle cx="100" cy="54" r="3" fill="#5cb85c"/>
+                <circle cx="114" cy="58" r="3" fill="#5b9bd5"/>
+                <path d="M78 124 Q88 116 98 124" stroke="#6b5443" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M102 124 Q112 116 122 124" stroke="#6b5443" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <path d="M90 150 Q100 144 110 150" stroke="#6b5443" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <path d="M150 168 Q176 160 172 132 Q170 150 150 158" fill="#e9cf6e" stroke="#d9b94a" stroke-width="2"/>
+              </svg>` },
+            { name: "上品なお嬢様風", speech: "ごきげんよう。本日も素晴らしい学問の時間を共に過ごしましょう。それでは、本日の課題でございます：", pitch: 1.1, rate: 1.0,
+              svg: `<svg viewBox="0 0 200 200">
+                <path d="M66 58 Q40 90 58 134 Q74 124 76 92 Z" fill="#e0bf90"/>
+                <path d="M134 58 Q160 90 142 134 Q126 124 124 92 Z" fill="#e0bf90"/>
+                <path d="M72 70 Q56 92 66 122 Q74 116 74 94 Z" fill="#f3e3c8"/>
+                <path d="M128 70 Q144 92 134 122 Q126 116 126 94 Z" fill="#f3e3c8"/>
+                <ellipse cx="100" cy="138" rx="58" ry="50" fill="#f3e3c8"/>
+                <path d="M78 126 Q86 132 94 126" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <path d="M106 126 Q114 132 122 126" stroke="#6b5443" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                <ellipse cx="74" cy="142" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <ellipse cx="126" cy="142" rx="8" ry="5" fill="#f1b3a8" opacity="0.7"/>
+                <ellipse cx="100" cy="148" rx="5" ry="3.5" fill="#8a6f52"/>
+                <path d="M92 156 Q100 162 108 156" stroke="#6b5443" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </svg>` }
+        ];
+
+        let audioCtx = null;
+        let speechUnlocked = false;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            unlockSpeechSynthesis();
+        }
+
+        function unlockSpeechSynthesis() {
+            if (window.speechSynthesis && !speechUnlocked) {
+                speechUnlocked = true;
+                const unlockUtterance = new SpeechSynthesisUtterance('いってみよう！');
+                window.speechSynthesis.speak(unlockUtterance);
+            }
+        }
+        
+        function playSound(type) {
+            initAudio(); 
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'alarm') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        let alarmInterval = null;
+        let countdownInterval = null;
+        let isTimerRunning = false;
+        let timeLeft = 15 * 60; 
+        let totalConfiguredTime = 15 * 60;
+
+        // 初期表示の設定
+        document.getElementById('timerDuration').addEventListener('change', function() {
+            if(!isTimerRunning) {
+                resetTimerDisplayFromInput();
+            }
+        });
+
+        function resetTimerDisplayFromInput() {
+            const m = parseInt(document.getElementById('timerDuration').value) || 15;
+            timeLeft = m * 60;
+            totalConfiguredTime = m * 60;
+            updateTimerDisplay();
+        }
+
+        function updateLiveClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('liveClock').innerText = `${h}:${m}`;
+        }
+        updateLiveClock();
+
+        setInterval(() => {
+            const now = new Date();
+            const currentHours = String(now.getHours()).padStart(2, '0');
+            const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+            const currentTimeStr = `${currentHours}:${currentMinutes}`;
+
+            document.getElementById('liveClock').innerText = `${currentHours}:${currentMinutes}`;
+
+            const targetTimeStr = document.getElementById('alarmTime').value;
+            
+            if (currentTimeStr === targetTimeStr && !alarmInterval && now.getSeconds() === 0) {
+                lastAlarmSource = 'time';
+                triggerAlarm();
+            }
+        }, 1000);
+
+        function toggleTimer() {
+            initAudio(); 
+            const btn = document.getElementById('startTimerBtn');
+            if (isTimerRunning) {
+                clearInterval(countdownInterval);
+                btn.innerText = "カウントダウン再開";
+                isTimerRunning = false;
+            } else {
+                if (timeLeft === totalConfiguredTime) {
+                    // 開始時にフォームから最新の分数を取り込む
+                    const m = parseInt(document.getElementById('timerDuration').value) || 15;
+                    timeLeft = m * 60;
+                    totalConfiguredTime = m * 60;
+                }
+                isTimerRunning = true;
+                btn.innerText = "一時停止";
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        lastAlarmSource = 'countdown';
+                        startPraiseAlarm();
+                        resetTimerDisplayFromInput();
+                        btn.innerText = "カウントダウン開始";
+                        isTimerRunning = false;
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(countdownInterval);
+            isTimerRunning = false;
+            document.getElementById('startTimerBtn').innerText = "カウントダウン開始";
+            resetTimerDisplayFromInput();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.max(0, Math.floor(timeLeft / 60));
+            const seconds = Math.max(0, timeLeft % 60);
+            document.getElementById('timerText').innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            const percent = totalConfiguredTime > 0 ? (timeLeft / totalConfiguredTime) * 360 : 0;
+            document.getElementById('timerCircle').style.background = `conic-gradient(var(--accent-blue) ${percent}deg, #edeef2 0deg)`;
+        }
+
+        let praiseLoopInterval = null;
+        let praiseAutoStopTimeout = null;
+
+        function startPraiseAlarm() {
+            document.getElementById('gachaCard').classList.add('alarm-active');
+            document.getElementById('stopAlarmBtn').style.display = 'inline-block';
+
+            showPraiseMessage(); // すぐに1回目を再生
+
+            if (!praiseLoopInterval) {
+                praiseLoopInterval = setInterval(() => {
+                    showPraiseMessage();
+                }, 4000);
+            }
+
+            if (praiseAutoStopTimeout) clearTimeout(praiseAutoStopTimeout);
+            praiseAutoStopTimeout = setTimeout(() => {
+                stopAlarm();
+            }, 60000); // 1分経ったら自動停止
+        }
+
+        function triggerAlarm() {
+            document.getElementById('gachaCard').classList.add('alarm-active');
+            document.getElementById('stopAlarmBtn').style.display = 'inline-block';
+            if (!alarmInterval) {
+                alarmInterval = setInterval(() => {
+                    playSound('alarm');
+                }, 400);
+            }
+        }
+
+        function stopAlarm() {
+            clearInterval(alarmInterval);
+            alarmInterval = null;
+
+            clearInterval(praiseLoopInterval);
+            praiseLoopInterval = null;
+            clearTimeout(praiseAutoStopTimeout);
+            praiseAutoStopTimeout = null;
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+            document.getElementById('gachaCard').classList.remove('alarm-active');
+            document.getElementById('stopAlarmBtn').style.display = 'none';
+
+            if (lastAlarmSource !== 'countdown') {
+                runGacha();
+            }
+        }
+
+        function showPraiseMessage() {
+            const dailyStyle = getDailyPraiseStyle();
+            const line = dailyStyle.lines[Math.floor(Math.random() * dailyStyle.lines.length)];
+
+            document.getElementById('charName').innerText = `🎉 タイマー終了！（${dailyStyle.style}）`;
+            document.getElementById('charSpeech').innerText = line;
+
+            if (window.speechSynthesis) {
+                if (!window.speechSynthesis.speaking) {
+                    const utterance = new SpeechSynthesisUtterance(line);
+                    utterance.lang = 'ja-JP';
+                    utterance.pitch = dailyStyle.pitch;
+                    utterance.rate = dailyStyle.rate;
+
+                    const jaVoice = getBestJapaneseVoice();
+                    if (jaVoice) {
+                        utterance.voice = jaVoice;
+                    }
+
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+        }
+
+        function runGacha() {
+            const randomChar = characterList[Math.floor(Math.random() * characterList.length)];
+            document.getElementById('charName').innerText = `今日の担当：${randomChar.name}`;
+            const portraitEl = document.getElementById('charPortrait');
+            if (portraitEl) portraitEl.innerHTML = randomChar.svg;
+
+            const activeTasks = tasks.filter(t => !t.done).map(t => t.text);
+
+            let speechText = randomChar.speech;
+            if (activeTasks.length > 0) {
+                speechText += activeTasks.join('、と、') + ' です！頑張ってくださいね！';
+            } else {
+                speechText += 'あれれ？今日のタスクは全部終わっているか、まだ登録されていないみたいですよ！素晴らしいですね！';
+            }
+
+            document.getElementById('charSpeech').innerText = speechText;
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(speechText);
+                utterance.lang = 'ja-JP';
+                utterance.pitch = randomChar.pitch;
+                utterance.rate = randomChar.rate;
+
+                const jaVoice = getBestJapaneseVoice();
+                if (jaVoice) {
+                    utterance.voice = jaVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function getBestJapaneseVoice() {
+            if (!window.speechSynthesis) return null;
+            const voices = window.speechSynthesis.getVoices();
+            const jaVoices = voices.filter(v => v.lang === 'ja-JP' || v.lang === 'ja_JP' || v.lang.startsWith('ja'));
+            if (jaVoices.length === 0) return null;
+            // 「拡張版／Enhanced／Premium」など高品質ボイスを優先
+            const enhanced = jaVoices.find(v => /enhanced|premium|高品質/i.test(v.name));
+            return enhanced || jaVoices[0];
+        }
+
+        // ==========================================
+        // タスク管理ロジック
+        // ==========================================
+        let tasks = []; // 各要素は { text: "算数プリント", done: false }
+        const TASKS_STORAGE_KEY = 'fumiben_tasks_v1';
+
+        function saveTasks() {
+            try {
+                localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+            } catch (e) {
+                console.error('タスクの保存に失敗しました', e);
+            }
+        }
+
+        function loadTasks() {
+            try {
+                const saved = localStorage.getItem(TASKS_STORAGE_KEY);
+                if (saved) {
+                    tasks = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('タスクの読み込みに失敗しました', e);
+                tasks = [];
+            }
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+
+            if (tasks.length === 0) {
+                list.innerHTML = '<li class="task-item" style="font-size:16px; color:#888; justify-content:center; cursor:default; border:none; background:none; text-align:center;">本日の「ふみ勉」タスクはありません。<br>下のボタンから登録してね。</li>';
+                return;
+            }
+
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = 'task-item' + (task.done ? ' completed' : '');
+                li.innerHTML = `<div class="task-checkbox"></div><span class="task-text" style="flex:1;">${task.text}</span><span class="task-edit" data-index="${index}">✏️</span><span class="task-delete" data-index="${index}">✕</span><span class="task-handle">⠿</span>`;
+
+                li.querySelector('.task-checkbox').onclick = (e) => {
+                    e.stopPropagation();
+                    toggleTaskDone(index);
+                };
+                li.querySelector('.task-text').onclick = () => toggleTaskDone(index);
+                li.querySelector('.task-edit').onclick = (e) => {
+                    e.stopPropagation();
+                    startEditTask(index, li);
+                };
+                li.querySelector('.task-delete').onclick = (e) => {
+                    e.stopPropagation();
+                    deleteTask(index);
+                };
+
+                list.appendChild(li);
+            });
+        }
+
+        function startEditTask(index, li) {
+            const textSpan = li.querySelector('.task-text');
+            const currentText = tasks[index].text;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.className = 'task-edit-input';
+            input.style.flex = '1';
+            input.style.fontSize = '18px';
+            input.style.padding = '4px 8px';
+            input.style.borderRadius = '8px';
+            input.style.border = '2px solid var(--accent-blue)';
+            input.style.fontFamily = "'Zen Maru Gothic', sans-serif";
+
+            textSpan.replaceWith(input);
+            input.focus();
+            input.select();
+
+            const finishEdit = () => {
+                const newText = input.value.trim();
+                if (newText) {
+                    tasks[index].text = newText;
+                    saveTasks();
+                }
+                renderTasks();
+            };
+
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+            });
+            input.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        function toggleTaskDone(index) {
+            tasks[index].done = !tasks[index].done;
+            if (tasks[index].done) playSound('success');
+            saveTasks();
+            renderTasks();
+            checkAllTasksDoneForCoin();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            saveTasks();
+            renderTasks();
+            checkAllTasksDoneForCoin();
+        }
+
+        function markAllTasksDone() {
+            if (tasks.length === 0) return;
+            tasks.forEach(t => t.done = false);
+            saveTasks();
+            renderTasks();
+        }
+
+        function tidyUpTasks() {
+            if (tasks.length === 0) return;
+            const undone = tasks.filter(t => !t.done);
+            const done = tasks.filter(t => t.done);
+            tasks = undone.concat(done);
+            saveTasks();
+            renderTasks();
+        }
+
+        function loadTasksFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const tasksParam = params.get('tasks');
+            if (tasksParam) {
+                const newTaskTexts = decodeURIComponent(tasksParam).split(/[,、]/).map(t => t.trim()).filter(t => t.length > 0);
+                newTaskTexts.forEach(text => {
+                    tasks.push({ text: text, done: false });
+                });
+                saveTasks();
+            }
+            renderTasks();
+        }
+
+        function toggleImportArea() {
+            const area = document.getElementById('importArea');
+            area.style.display = area.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function importTasksFromInput() {
+            const inputVal = document.getElementById('csvTasks').value;
+            if(inputVal) {
+                const newTasks = inputVal.split(/[,、]/).map(t => t.trim()).filter(t => t.length > 0);
+                newTasks.forEach(text => {
+                    tasks.push({ text: text, done: false });
+                });
+                document.getElementById('csvTasks').value = '';
+                saveTasks();
+                renderTasks();
+                toggleImportArea();
+            }
+        }
+
+        // Service Worker登録(オフライン対応・ホーム画面追加対応)
+        // 古いService Worker(キャッシュが残ったまま更新されないもの)を解除してから、
+        // 新しいファイル名で登録し直すことで、即座に切り替える
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.getRegistrations().then((regs) => {
+                    const hasOld = regs.some((r) => r.active && r.active.scriptURL.endsWith('/service-worker.js'));
+                    Promise.all(
+                        regs
+                            .filter((r) => r.active && r.active.scriptURL.endsWith('/service-worker.js'))
+                            .map((r) => r.unregister())
+                    ).then(() => {
+                        navigator.serviceWorker.register('./service-worker-v2.js').catch((err) => {
+                            console.error('Service Worker登録失敗:', err);
+                        });
+                    });
+                });
+            });
+        }
+
+        window.onload = () => {
+            loadTasks();
+            loadTasksFromURL();
+            resetTimerDisplayFromInput();
+            initCoinWalletAndGacha();
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+
+            if (window.Sortable) {
+                new Sortable(document.getElementById('taskList'), {
+                    handle: '.task-handle',
+                    animation: 150,
+                    onEnd: function (evt) {
+                        const movedItem = tasks.splice(evt.oldIndex, 1)[0];
+                        tasks.splice(evt.newIndex, 0, movedItem);
+                        saveTasks();
+                        renderTasks();
+                    }
+                });
+            }
+        };
+
+        // ==========================================
+        // がんばりっこ ちょきんばこ ＆ ごほうびガチャ
+        // ==========================================
+        const COIN_KEY = 'fumiben_coinwallet_v1';
+        const PIGGY_KEY = 'fumiben_piggy_v1';
+        const NEEDED = 5;
+        const MAX_GACHA_PER_MONTH = 6;
+        const MAX_BEAR_PER_MONTH = 3;
+
+        const rewards = [
+            { emoji: "🐻", name: "くまさんがでた！", amount: 100 },
+            { emoji: "🐦", name: "しまえなががでた！", amount: 70 },
+            { emoji: "🐤", name: "シジュウカラがでた！", amount: 50 },
+            { emoji: "🐰", name: "うさぎがでた！", amount: 20 },
+            { emoji: "🦎", name: "とかげ紳士がでた！", amount: 10 },
+        ];
+
+        let coinData = { coins: 0, lastAwardedDate: null };
+        let piggyData = { monthKey: null, total: 0, gachaCount: 0, bearCount: 0 };
+        let insertedCoins = 0;
+
+        function todayStr() {
+            const now = new Date();
+            return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        }
+
+        function currentMonthKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${now.getMonth() + 1}`;
+        }
+
+        function loadCoinWallet() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(COIN_KEY));
+                if (saved) coinData = saved;
+            } catch (e) {}
+        }
+
+        function saveCoinWallet() {
+            try { localStorage.setItem(COIN_KEY, JSON.stringify(coinData)); } catch (e) {}
+        }
+
+        function loadPiggy() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(PIGGY_KEY));
+                if (saved && saved.monthKey === currentMonthKey()) {
+                    piggyData = saved;
+                    if (typeof piggyData.gachaCount !== 'number') piggyData.gachaCount = 0;
+                    if (typeof piggyData.bearCount !== 'number') piggyData.bearCount = 0;
+                    return;
+                }
+            } catch (e) {}
+            piggyData = { monthKey: currentMonthKey(), total: 0, gachaCount: 0, bearCount: 0 };
+            savePiggy();
+        }
+
+        function savePiggy() {
+            try { localStorage.setItem(PIGGY_KEY, JSON.stringify(piggyData)); } catch (e) {}
+        }
+
+        function ensureCurrentMonth() {
+            if (piggyData.monthKey !== currentMonthKey()) {
+                piggyData = { monthKey: currentMonthKey(), total: 0, gachaCount: 0, bearCount: 0 };
+                savePiggy();
+                renderPiggy(false);
+            }
+        }
+
+        function renderPiggy(bump) {
+            const now = new Date();
+            document.getElementById('piggyMonth').innerText = `${now.getMonth() + 1}月分`;
+            document.getElementById('piggyTotal').innerText = piggyData.total;
+            document.getElementById('piggyGachaCount').innerText = `ガチャ ${piggyData.gachaCount}/${MAX_GACHA_PER_MONTH}`;
+            if (bump) {
+                const amountEl = document.getElementById('piggyTotal').parentElement;
+                amountEl.classList.remove('bump');
+                requestAnimationFrame(() => amountEl.classList.add('bump'));
+            }
+        }
+
+        function addToPiggy(amount) {
+            ensureCurrentMonth();
+            if (piggyData.gachaCount > MAX_GACHA_PER_MONTH) return; // 安全ガード
+            piggyData.total += amount;
+            savePiggy();
+            renderPiggy(true);
+        }
+
+        function renderWallet() {
+            const walletBar = document.getElementById('walletBar');
+            document.getElementById('walletText').innerText = `${coinData.coins}/${NEEDED}`;
+            const coinDots = document.getElementById('coinDots');
+            coinDots.innerHTML = '';
+            for (let i = 0; i < NEEDED; i++) {
+                const d = document.createElement('div');
+                d.className = 'coin-dot' + (i < coinData.coins ? '' : ' empty');
+                coinDots.appendChild(d);
+            }
+            if (coinData.coins >= NEEDED) {
+                walletBar.classList.remove('disabled');
+            } else {
+                walletBar.classList.add('disabled');
+            }
+        }
+
+        function checkAllTasksDoneForCoin() {
+            if (tasks.length === 0) return;
+            const allDone = tasks.every(t => t.done);
+            if (!allDone) return;
+            if (coinData.lastAwardedDate === todayStr()) return; // きょうはもう貰った
+
+            coinData.lastAwardedDate = todayStr();
+            if (coinData.coins < NEEDED) {
+                coinData.coins++;
+            }
+            saveCoinWallet();
+            renderWallet();
+
+            if (coinData.coins >= NEEDED) {
+                setCharSpeechSafe("きょうのタスク、ぜんぶできたね！ちょっとコインが5まいたまったよ！おふみさいふをタップしてガチャしてみよう！");
+            } else {
+                const left = NEEDED - coinData.coins;
+                setCharSpeechSafe(`きょうのタスク、ぜんぶできたね！ちょっとコインを1まいゲット！あと${left}まいでガチャできるよ！`);
+            }
+        }
+
+        function setCharSpeechSafe(text) {
+            const el = document.getElementById('charSpeech');
+            if (el) el.innerText = text;
+        }
+
+        function initCoinWalletAndGacha() {
+            loadCoinWallet();
+            loadPiggy();
+            renderWallet();
+            renderPiggy(false);
+
+            document.getElementById('walletBar').addEventListener('click', () => {
+                if (coinData.coins < NEEDED) return;
+                ensureCurrentMonth();
+                if (piggyData.gachaCount >= MAX_GACHA_PER_MONTH) {
+                    setCharSpeechSafe("今月のガチャはもう6回やったよ！また来月いっしょにやろうね！");
+                    return;
+                }
+                openGacha();
+            });
+
+            document.getElementById('gachaCancelBtn').addEventListener('click', closeGacha);
+            document.getElementById('gachaLever').addEventListener('click', () => {
+                const lever = document.getElementById('gachaLever');
+                if (insertedCoins < NEEDED || lever.classList.contains('pulled')) return;
+                pullLever();
+            });
+        }
+
+        function openGacha() {
+            insertedCoins = 0;
+            document.querySelectorAll('.gacha-pdot').forEach(d => d.classList.remove('filled'));
+            document.getElementById('gachaLever').classList.add('disabled');
+            document.getElementById('gachaResultCard').classList.remove('show');
+            document.getElementById('gachaClosingNote').innerText = '';
+            document.getElementById('gachaTrayHint').innerText = 'ちょっとコインをタップ →投入口へ';
+            buildGachaTray();
+            document.getElementById('gachaOverlay').classList.add('open');
+        }
+
+        function closeGacha() {
+            document.getElementById('gachaOverlay').classList.remove('open');
+        }
+
+        function buildGachaTray() {
+            const tray = document.getElementById('gachaCoinTray');
+            tray.innerHTML = '';
+            for (let i = 0; i < NEEDED - insertedCoins; i++) {
+                const c = document.createElement('div');
+                c.className = 'gacha-coin';
+                c.innerText = '🪙';
+                c.addEventListener('click', () => insertGachaCoin(c));
+                tray.appendChild(c);
+            }
+            if (NEEDED - insertedCoins === 0) {
+                document.getElementById('gachaTrayHint').innerText = 'ぜんぶ入った！レバーを回そう';
+            }
+        }
+
+        function insertGachaCoin(coinEl) {
+            if (insertedCoins >= NEEDED) return;
+            const coinSlot = document.getElementById('gachaCoinSlot');
+            const startRect = coinEl.getBoundingClientRect();
+            const slotRect = coinSlot.getBoundingClientRect();
+
+            coinEl.classList.add('flying');
+            coinEl.style.top = startRect.top + 'px';
+            coinEl.style.left = startRect.left + 'px';
+            document.body.appendChild(coinEl);
+
+            requestAnimationFrame(() => {
+                coinEl.style.top = (slotRect.top + 2) + 'px';
+                coinEl.style.left = (slotRect.left + slotRect.width / 2 - 15) + 'px';
+                coinEl.style.transform = 'scale(0.3)';
+                coinEl.style.opacity = '0';
+            });
+
+            coinSlot.classList.add('lit');
+            setTimeout(() => coinSlot.classList.remove('lit'), 300);
+
+            setTimeout(() => {
+                coinEl.remove();
+                insertedCoins++;
+                document.querySelectorAll('.gacha-pdot')[insertedCoins - 1].classList.add('filled');
+                buildGachaTray();
+                if (insertedCoins >= NEEDED) {
+                    document.getElementById('gachaLever').classList.remove('disabled');
+                }
+            }, 420);
+        }
+
+        function pullLever() {
+            ensureCurrentMonth();
+            piggyData.gachaCount++;
+            savePiggy();
+
+            const lever = document.getElementById('gachaLever');
+            const dome = document.getElementById('gachaDome');
+            lever.classList.add('pulled');
+            dome.classList.add('spinning');
+            document.getElementById('gachaResultCard').classList.remove('show');
+
+            setTimeout(() => {
+                dome.classList.remove('spinning');
+                lever.classList.remove('pulled');
+                showGachaResult();
+            }, 1400);
+        }
+
+        function pickReward() {
+            const pool = (piggyData.bearCount >= MAX_BEAR_PER_MONTH)
+                ? rewards.filter(r => r.emoji !== "🐻")
+                : rewards;
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function showGachaResult() {
+            const r = pickReward();
+            if (r.emoji === "🐻") piggyData.bearCount++;
+            document.getElementById('gachaResultAnimal').innerText = r.emoji;
+            document.getElementById('gachaResultName').innerText = r.name;
+            document.getElementById('gachaResultAmount').innerText = r.amount > 0 ? `+${r.amount}円` : '+0円';
+            document.getElementById('gachaResultCard').classList.add('show');
+            addToPiggy(r.amount);
+
+            // ちょっとコインを5まい消費
+            coinData.coins = Math.max(0, coinData.coins - NEEDED);
+            saveCoinWallet();
+            renderWallet();
+
+            let count = 3;
+            const closingNote = document.getElementById('gachaClosingNote');
+            closingNote.innerText = `${count}びょうで とじます…`;
+            const tick = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    closingNote.innerText = `${count}びょうで とじます…`;
+                } else {
+                    clearInterval(tick);
+                    closeGacha();
+                    setCharSpeechSafe("つぎのごほうびまで、また今日のタスクをがんばろうね！");
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
