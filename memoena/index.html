@@ -357,11 +357,27 @@
 
 
 <script>
-    let tasks = [
-        { id: 1, text: "ハンカチ　水筒", time: "morning", completed: false, important: false },
-        { id: 2, text: "フロス　はみがき", time: "night", completed: false, important: false },
-        { id: 3, text: "習ったことを３つきく", time: "night", completed: false, important: false }
-    ];
+    const STORAGE_KEY = 'memoenaga-tasks';
+
+    function loadTasks() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        return [
+            { id: 1, text: "ハンカチ　水筒", time: "morning", completed: false, important: false },
+            { id: 2, text: "フロス　はみがき", time: "night", completed: false, important: false },
+            { id: 3, text: "習ったことを３つきく", time: "night", completed: false, important: false }
+        ];
+    }
+
+    function saveTasks() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        } catch (e) {}
+    }
+
+    let tasks = loadTasks();
 
     let currentFilter = 'all';
     let isMusicPlaying = false;
@@ -416,6 +432,7 @@
                     if (found) newTasks.push(found);
                 });
                 tasks = [...newTasks, ...unrenderedTasks];
+                saveTasks();
             }
         });
     }
@@ -534,6 +551,7 @@
         tasks.push(newTask);
         input.value = '';
         renderTasks();
+        saveTasks();
     }
 
     function handleKeyPress(e) {
@@ -549,6 +567,7 @@
             task.completed = !task.completed;
             if (task.completed) playCuteSound();
             renderTasks();
+            saveTasks();
         }
     }
 
@@ -557,6 +576,7 @@
         if (task) {
             task.important = !task.important;
             renderTasks();
+            saveTasks();
         }
     }
 
@@ -564,6 +584,7 @@
         tasks.forEach(t => t.completed = false);
         alert("すべてのチェックを外しました！");
         renderTasks();
+        saveTasks();
     }
 
     function cycleTime(id) {
@@ -573,17 +594,22 @@
             else if (task.time === "noon") task.time = "night";
             else task.time = "morning";
             renderTasks();
+            saveTasks();
         }
     }
 
     function updateText(id, newText) {
         const task = tasks.find(t => t.id === id);
-        if (task) task.text = newText;
+        if (task) {
+            task.text = newText;
+            saveTasks();
+        }
     }
 
     function deleteTask(id) {
         tasks = tasks.filter(t => t.id !== id);
         renderTasks();
+        saveTasks();
     }
 
     function switchTab(tabName) {
