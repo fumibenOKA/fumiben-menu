@@ -393,6 +393,25 @@
             transform: scale(0.96);
         }
 
+        /* データのおせわ（バックアップ） */
+        .backup-card h2 {
+            margin-bottom: 10px;
+        }
+        .backup-btn {
+            font-family: 'Yusei Magic', sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+            color: var(--gray);
+            background: #f5f2ec;
+            border: 1.5px solid var(--line);
+            border-radius: 20px;
+            padding: 7px 14px;
+            cursor: pointer;
+        }
+        .backup-btn:active {
+            transform: scale(0.96);
+        }
+
         /* リンクランチャーセクション */
 
         /* ===== がんばりっこ ちょきんばこ ===== */
@@ -898,6 +917,16 @@
                     <span>考察のパープル</span>
                 </a>
             </div>
+        </div>
+
+        <div class="card backup-card full-width">
+            <h2 style="font-size:14px; opacity:0.6;">⚙️ データのおせわ</h2>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="backup-btn" onclick="exportAllData()">⇩ Export</button>
+                <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">⇧ Import</button>
+                <input type="file" id="importFileInput" accept=".txt" style="display:none" onchange="handleBackupImportFile(event)">
+            </div>
+            <p style="font-size:11px; color:#aaa; margin-top:6px;">きょうのこと、ちょきんばこ、おさいふのデータをひきつぐときに使います</p>
         </div>
     </div>
 
@@ -1795,6 +1824,106 @@
                     setCharSpeechSafe("つぎのごほうびまで、また今日のタスクをがんばろうね！");
                 }
             }, 1000);
+        }
+
+        // ==========================================
+        // データのおせわ（バックアップ Export / Import）
+        // ==========================================
+        function exportAllData() {
+            const today = new Date();
+            const dateStr = today.toISOString().slice(0, 10);
+
+            const taskLines = tasks.length > 0
+                ? tasks.map(t => `[${t.done ? 'x' : ' '}] ${t.text}`).join('\n')
+                : '（タスクなし）';
+
+            const coinLine = `${coinData.coins} / ${NEEDED}まい（最終獲得日: ${coinData.lastAwardedDate || 'なし'}）`;
+
+            const piggyLine = `${piggyData.monthKey}分 ごうけい: ${piggyData.total}円 / ガチャ回数: ${piggyData.gachaCount}/${MAX_GACHA_PER_MONTH} / 🐻獲得: ${piggyData.bearCount}`;
+
+            const backupObj = { tasks: tasks, coin: coinData, piggy: piggyData };
+
+            const text =
+`# ふみ勉 バックアップ ${dateStr}
+
+## タスク
+${taskLines}
+
+## ちょっとコイン
+${coinLine}
+
+## おふみさいふ
+${piggyLine}
+
+---DO NOT EDIT BELOW THIS LINE---
+${JSON.stringify(backupObj)}
+`;
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).catch(() => {});
+            }
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fumiben-backup-${dateStr}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert("バックアップを書き出しました📋");
+        }
+
+        function handleBackupImportFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const marker = '---DO NOT EDIT BELOW THIS LINE---';
+                const idx = content.indexOf(marker);
+
+                if (idx === -1) {
+                    alert("このファイルからはバックアップデータが見つかりませんでした");
+                    return;
+                }
+
+                let parsed;
+                try {
+                    const jsonText = content.slice(idx + marker.length).trim();
+                    parsed = JSON.parse(jsonText);
+                } catch (err) {
+                    alert("バックアップデータの読み取りに失敗しました");
+                    return;
+                }
+
+                if (!parsed || !Array.isArray(parsed.tasks) || !parsed.coin || !parsed.piggy) {
+                    alert("バックアップデータの形式が正しくありません");
+                    return;
+                }
+
+                if (!confirm("バックアップデータを読み込みます。今のタスク・ちょっとコイン・おふみさいふは全部書き換わります。よろしいですか？")) return;
+                if (!confirm("本当に大丈夫？元には戻せません。")) return;
+
+                tasks = parsed.tasks;
+                coinData = parsed.coin;
+                piggyData = parsed.piggy;
+
+                saveTasks();
+                saveCoinWallet();
+                savePiggy();
+
+                renderTasks();
+                renderWallet();
+                renderPiggy(false);
+
+                alert("バックアップを読み込みました！");
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
     </script>
 </body>
