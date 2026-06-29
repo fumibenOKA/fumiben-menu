@@ -4,23 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>きょうのこと、ちょっとずつ</title>
-
-    <!-- PWA: マニフェスト -->
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#bfe3f5">
-
-    <!-- PWA: アイコン -->
-    <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16x16.png">
-    <link rel="shortcut icon" href="./icons/favicon.ico">
-    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-
-    <!-- iOSでホーム画面追加した時にアプリらしく動かすための設定 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="めもえなが">
-    <meta name="mobile-web-app-capable" content="yes">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yomogi&family=M+PLUS+Rounded+1c:wght@400;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -108,6 +91,9 @@
             max-width: 480px;
             text-align: center;
             margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 4px;
         }
         .music-link {
             background: none;
@@ -115,9 +101,9 @@
             color: #a9c4d6;
             font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
-            padding: 6px 10px;
+            padding: 6px 8px;
         }
 
         .tabs {
@@ -352,32 +338,34 @@
 
 <div class="footer-bar">
     <button id="music-btn" class="music-link" onclick="toggleMusic()">▶ Cateenを聴く</button>
+    <button class="music-link" onclick="exportTasks()">⇩ Export</button>
+    <button class="music-link" onclick="document.getElementById('import-file-input').click()">⇧ Import</button>
+    <input type="file" id="import-file-input" accept=".txt" style="display:none" onchange="handleImportFile(event)">
 </div>
 
 
 
 <script>
-    const STORAGE_KEY = 'memoenaga-tasks';
+    const TASKS_STORAGE_KEY = 'memoenaga-tasks';
+    const defaultTasks = [
+        { id: 1, text: "ハンカチ　水筒", time: "morning", completed: false, important: false },
+        { id: 2, text: "フロス　はみがき", time: "night", completed: false, important: false },
+        { id: 3, text: "習ったことを３つきく", time: "night", completed: false, important: false }
+    ];
+    let tasks = [];
+
+    function saveTasks() {
+        try { localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks)); } catch (e) {}
+    }
 
     function loadTasks() {
         try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) return JSON.parse(saved);
-        } catch (e) {}
-        return [
-            { id: 1, text: "ハンカチ　水筒", time: "morning", completed: false, important: false },
-            { id: 2, text: "フロス　はみがき", time: "night", completed: false, important: false },
-            { id: 3, text: "習ったことを３つきく", time: "night", completed: false, important: false }
-        ];
+            const saved = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY));
+            tasks = (saved && Array.isArray(saved)) ? saved : defaultTasks;
+        } catch (e) {
+            tasks = defaultTasks;
+        }
     }
-
-    function saveTasks() {
-        try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-        } catch (e) {}
-    }
-
-    let tasks = loadTasks();
 
     let currentFilter = 'all';
     let isMusicPlaying = false;
@@ -387,6 +375,7 @@
     window.onload = function() {
         setTodayDate();
         checkTimeAndSetSpeech();
+        loadTasks();
         renderTasks();
         initSortable();
         enableWakeLock();
@@ -550,8 +539,8 @@
 
         tasks.push(newTask);
         input.value = '';
-        renderTasks();
         saveTasks();
+        renderTasks();
     }
 
     function handleKeyPress(e) {
@@ -566,8 +555,8 @@
         if (task) {
             task.completed = !task.completed;
             if (task.completed) playCuteSound();
-            renderTasks();
             saveTasks();
+            renderTasks();
         }
     }
 
@@ -575,16 +564,16 @@
         const task = tasks.find(t => t.id === id);
         if (task) {
             task.important = !task.important;
-            renderTasks();
             saveTasks();
+            renderTasks();
         }
     }
 
     function resetAllChecks() {
         tasks.forEach(t => t.completed = false);
+        saveTasks();
         alert("すべてのチェックを外しました！");
         renderTasks();
-        saveTasks();
     }
 
     function cycleTime(id) {
@@ -593,8 +582,8 @@
             if (task.time === "morning") task.time = "noon";
             else if (task.time === "noon") task.time = "night";
             else task.time = "morning";
-            renderTasks();
             saveTasks();
+            renderTasks();
         }
     }
 
@@ -608,8 +597,8 @@
 
     function deleteTask(id) {
         tasks = tasks.filter(t => t.id !== id);
-        renderTasks();
         saveTasks();
+        renderTasks();
     }
 
     function switchTab(tabName) {
@@ -647,13 +636,78 @@
         }
     }
 
-    // PWA: Service Workerの登録
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch((err) => {
-                console.warn('Service Worker registration failed:', err);
-            });
-        });
+    // --- Export ---
+    function taskToLine(t) {
+        const status = t.completed ? 'x' : ' ';
+        const important = t.important ? '★' : ' ';
+        const timeEmoji = t.time === 'morning' ? '🌅' : (t.time === 'noon' ? '☀️' : '🌙');
+        return `[${status}]${important}${timeEmoji} ${t.text}`;
+    }
+
+    function exportTasks() {
+        const text = tasks.map(taskToLine).join('\n');
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).catch(() => {});
+        }
+
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const today = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `memoenaga-${today}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert("コピー＆書き出し、できました📋");
+    }
+
+    // --- Import ---
+    function parseLine(line) {
+        const match = line.match(/^\[([ x])\]\s*(★?)\s*([🌅☀️🌙])\s*(.+)$/u);
+        if (!match) return null;
+        const [, status, important, timeEmoji, text] = match;
+        let time = 'morning';
+        if (timeEmoji === '☀️') time = 'noon';
+        if (timeEmoji === '🌙') time = 'night';
+        return {
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            text: text.trim(),
+            time: time,
+            completed: status === 'x',
+            important: important === '★'
+        };
+    }
+
+    function handleImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l);
+            const importedTasks = lines.map(parseLine).filter(t => t !== null);
+
+            if (importedTasks.length === 0) {
+                alert("読み取れるタスクが見つかりませんでした");
+                return;
+            }
+
+            const replace = confirm(`${importedTasks.length}件のタスクが見つかりました。\n\n「OK」= 今のタスクを全部消して置き換える（復元・引っ越し用）\n「キャンセル」= 今のタスクは残して追加する`);
+            if (replace) {
+                if (!confirm("本当に今のタスクを全部消しますか？この操作は戻せません。")) return;
+                tasks = importedTasks;
+            } else {
+                tasks = [...tasks, ...importedTasks];
+            }
+            saveTasks();
+            renderTasks();
+        };
+        reader.readAsText(file);
+        event.target.value = '';
     }
 </script>
 </body>
