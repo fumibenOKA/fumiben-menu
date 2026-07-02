@@ -4,373 +4,870 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>きょうのこと、ちょっとずつ</title>
-
-    <!-- PWA: マニフェスト -->
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#bfe3f5">
-
-    <!-- PWA: アイコン -->
-    <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16x16.png">
-    <link rel="shortcut icon" href="./icons/favicon.ico">
-    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
-
-    <!-- iOSでホーム画面追加した時にアプリらしく動かすための設定 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="めもえなが">
-    <meta name="mobile-web-app-capable" content="yes">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yomogi&family=M+PLUS+Rounded+1c:wght@400;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg-color: #eaf6ff;
             --card-bg: #ffffff;
             --text-color: #5c6b78;
             --accent-color: #bfe3f5;
-            --highlight-color: #fff3cd;
-            --time-bg-morning: #ffe9ec;
-            --time-bg-noon: #fff6dd;
-            --time-bg-night: #e3eef9;
         }
 
         body {
             font-family: 'M PLUS Rounded 1c', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 12px;
+            display: flex; flex-direction: column; align-items: center;
         }
-
-        button, input, textarea {
-            font-family: inherit;
-        }
+        button, input, textarea { font-family: inherit; }
 
         .app-container {
-            width: 100%;
-            max-width: 480px;
+            width: 100%; max-width: 480px;
             background: var(--card-bg);
             border-radius: 20px;
             box-shadow: 0 4px 16px rgba(165, 150, 140, 0.1);
-            padding: 14px;
-            box-sizing: border-box;
+            padding: 14px; box-sizing: border-box;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 8px;
-            padding: 4px 0 0;
-        }
+        /* ヘッダー */
+        .header { text-align: center; margin-bottom: 8px; padding: 4px 0 0; }
         .page-title {
-            font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-weight: bold;
-            font-size: 16px;
-            color: #5f96b3;
-            margin-bottom: 0px;
-            line-height: 1.2;
-            letter-spacing: 0.5px;
+            font-family: 'Yomogi', sans-serif;
+            font-weight: bold; font-size: 16px; color: #5f96b3;
+            margin-bottom: 0; line-height: 1.2; letter-spacing: 0.5px;
         }
         .date-display {
-            font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-weight: bold;
-            font-size: 15px;
-            color: #5f96b3;
-            margin-bottom: 0px;
-            line-height: 1.3;
+            font-family: 'Yomogi', sans-serif;
+            font-weight: bold; font-size: 15px; color: #5f96b3;
+            margin-bottom: 0; line-height: 1.3;
         }
 
-        .quick-actions {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
+        /* モード切替 */
+        .mode-tabs {
+            display: flex; justify-content: center; gap: 6px; margin-bottom: 10px;
         }
+        .mode-btn {
+            padding: 6px 16px; border: none; background: transparent;
+            border-radius: 14px;
+            font-family: 'Yomogi', sans-serif; font-size: 14px; font-weight: bold;
+            color: #c4d4de; cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .mode-btn.active { background: #eef7fc; color: #5f96b3; }
+
+        /* あさのじゅんび */
+        .quick-actions { display: flex; gap: 8px; margin-bottom: 8px; }
         #morning-clear-btn {
-            display: none;
             flex: 1;
-            background-color: #fff0f3;
-            color: #ff9aab;
-            border: none;
-            padding: 10px;
-            border-radius: 12px;
-            font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
+            background-color: #fff0f3; color: #ff9aab;
+            border: none; padding: 10px; border-radius: 12px;
+            font-family: 'Yomogi', sans-serif; font-weight: bold;
+            cursor: pointer; font-size: 15px;
         }
 
+        /* フッター */
         .footer-bar {
-            width: 100%;
-            max-width: 480px;
-            text-align: center;
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 4px;
+            width: 100%; max-width: 480px;
+            text-align: center; margin-top: 10px;
+            display: flex; justify-content: center; gap: 4px;
         }
         .music-link {
-            background: none;
-            border: none;
-            color: #a9c4d6;
-            font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 6px 8px;
+            background: none; border: none; color: #a9c4d6;
+            font-family: 'Yomogi', sans-serif; font-weight: bold;
+            font-size: 14px; cursor: pointer; padding: 6px 8px;
         }
 
-        .tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-        }
+        /* 時間帯タブ */
+        .tabs { display: flex; gap: 6px; margin-bottom: 8px; }
         .tab-btn {
-            flex: 1;
-            padding: 8px 4px;
-            border: none;
-            background: #eef7fc;
-            border-radius: 16px;
-            font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-size: 15px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #8fb8d2;
+            flex: 1; padding: 8px 4px; border: none;
+            background: #eef7fc; border-radius: 16px;
+            font-family: 'Yomogi', sans-serif;
+            font-size: 15px; cursor: pointer; font-weight: bold; color: #8fb8d2;
         }
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: #fff;
-        }
+        .tab-btn.active { background: var(--accent-color); color: #fff; }
         .tab-btn:nth-child(2).active { background: #ffd3da; color: #fff; }
         .tab-btn:nth-child(3).active { background: #ffe9ad; color: #8a6d2c; }
         .tab-btn:nth-child(4).active { background: #cdddf2; color: #fff; }
 
-        .task-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+        /* タスクリスト */
+        .task-list { list-style: none; padding: 0; margin: 0; }
         .task-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 14px;
-            margin-bottom: 8px;
+            position: relative; overflow: hidden;
+            border-radius: 14px; margin-bottom: 8px;
         }
-
         .task-item-content {
-            display: flex;
-            align-items: center;
-            background: #fbfdff;
-            border: none;
-            border-radius: 14px;
-            padding: 10px 8px;
-            gap: 6px;
-            box-sizing: border-box;
-            width: 100%;
-            position: relative;
-            z-index: 2;
-            touch-action: pan-y;
-            transition: transform 0.2s ease;
-            cursor: grab;
+            display: flex; align-items: center;
+            background: #fbfdff; border: 1.5px solid transparent;
+            border-radius: 14px; padding: 10px 8px; gap: 6px;
+            box-sizing: border-box; width: 100%;
+            position: relative; z-index: 2;
+            touch-action: pan-y; transition: transform 0.2s ease; cursor: grab;
         }
-        .task-item-content:active {
-            cursor: grabbing;
-        }
+        .task-item-content:active { cursor: grabbing; }
+        .task-item-content.from-template { border-color: #d0eaf7; }
 
         .delete-zone {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 76px;
-            background-color: #f4f0ea;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
+            position: absolute; top: 0; right: 0; bottom: 0; width: 76px;
+            background-color: #f4f0ea; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center; z-index: 1;
         }
         .delete-zone-btn {
-            background: none;
-            border: none;
-            color: #b0a7a0;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
+            background: none; border: none; color: #b0a7a0;
+            font-size: 18px; cursor: pointer; padding: 8px;
         }
-        
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #eef5ff;
-        }
+        .sortable-ghost { opacity: 0.4; background-color: #eef5ff; }
 
-        .task-item-content.important .task-text {
-            font-weight: bold;
-        }
-
+        .task-item-content.important .task-text { font-weight: bold; }
         .task-item-content.completed .task-text,
         .task-item-content.completed .time-badge,
-        .task-item-content.completed .important-dot {
-            opacity: 0.45;
-        }
+        .task-item-content.completed .important-dot { opacity: 0.45; }
         .task-item-content.completed .task-text {
-            text-decoration: line-through;
-            color: #b0a7a0;
+            text-decoration: line-through; color: #b0a7a0;
         }
 
         .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            flex-shrink: 0;
-            padding: 0 2px;
+            display: flex; align-items: center; flex-shrink: 0; padding: 0 2px;
         }
         .checkbox-wrapper input {
-            width: 17px;
-            height: 17px;
-            margin: 0;
-            cursor: pointer;
+            width: 17px; height: 17px; margin: 0; cursor: pointer;
+            accent-color: #bfe3f5;
         }
-
         .important-dot-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 6px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: none; border: none; cursor: pointer; padding: 6px;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
         }
         .important-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #e8e4df;
-            display: block;
+            width: 12px; height: 12px; border-radius: 50%;
+            background-color: #e8e4df; display: block;
             transition: background-color 0.15s ease;
         }
-        .important-dot-btn.active .important-dot {
-            background-color: #ffc4d6;
-        }
+        .important-dot-btn.active .important-dot { background-color: #ffc4d6; }
 
         .task-text {
-            flex: 1;
-            min-width: 0;
-            border: none;
-            background: transparent;
-            font-size: 19px;
-            font-weight: 500;
-            font-family: inherit;
-            color: var(--text-color);
-            padding: 4px 2px;
-            box-sizing: border-box;
-            resize: none;
-            overflow: hidden;
-            line-height: 1.4;
+            flex: 1; min-width: 0; border: none; background: transparent;
+            font-size: 19px; font-weight: 500; font-family: inherit;
+            color: var(--text-color); padding: 4px 2px;
+            box-sizing: border-box; resize: none; overflow: hidden; line-height: 1.4;
         }
-        .task-text:focus {
-            outline: none;
-            background: #faf6f0;
-            border-radius: 4px;
-        }
+        .task-text:focus { outline: none; background: #faf6f0; border-radius: 4px; }
 
         .time-badge {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 17px;
-            cursor: pointer;
-            user-select: none;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 32px; height: 32px; border-radius: 50%;
+            font-size: 17px; cursor: pointer; user-select: none;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
         }
         .time-morning { background-color: #ffe9ec; }
-        .time-noon { background-color: #fff6dd; }
-        .time-night { background-color: #e3eef9; }
+        .time-noon    { background-color: #fff6dd; }
+        .time-night   { background-color: #e3eef9; }
 
-
-        .add-container {
-            margin-top: 12px;
-            display: flex;
-            gap: 6px;
-        }
+        /* 追加フォーム */
+        .add-container { margin-top: 12px; display: flex; gap: 6px; }
         .add-input {
-            flex: 1;
-            min-width: 0;
-            padding: 10px;
-            border: none;
-            background: #f3faff;
-            border-radius: 12px;
-            font-size: 17px;
+            flex: 1; min-width: 0; padding: 10px; border: none;
+            background: #f3faff; border-radius: 12px; font-size: 17px;
         }
-        .add-input:focus {
-            outline: none;
-            background: #eaf6ff;
-        }
+        .add-input:focus { outline: none; background: #eaf6ff; }
         .add-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-family: 'Yomogi', 'M PLUS Rounded 1c', sans-serif;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            flex-shrink: 0;
+            background: var(--accent-color); color: white; border: none;
+            padding: 10px 14px; border-radius: 12px;
+            font-family: 'Yomogi', sans-serif; font-weight: bold;
+            font-size: 16px; cursor: pointer; flex-shrink: 0;
+        }
+
+        /* きろく：ログインプロンプト */
+        #login-prompt { text-align: center; padding: 30px 0 20px; }
+        .login-icon { font-size: 38px; margin-bottom: 10px; }
+        .login-desc {
+            font-size: 14px; color: #9ab4c4; line-height: 1.7; margin: 0 0 18px;
+        }
+        .login-btn {
+            background: #eef7fc; color: #5f96b3; border: none;
+            padding: 12px 28px; border-radius: 16px;
+            font-family: 'Yomogi', sans-serif; font-weight: bold;
+            font-size: 15px; cursor: pointer;
+        }
+        .login-btn:active { background: #d8eef8; }
+
+        /* きろく：カテゴリチップ */
+        .interest-cat-filters {
+            display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
+        }
+        .cat-chip {
+            padding: 6px 12px; border-radius: 14px;
+            background: #f4f0ea; font-size: 13px; color: #b9aea2;
+            border: none; cursor: pointer; font-weight: bold;
+        }
+        .cat-chip.active { background: #ece6f7; color: #7a6a99; }
+
+        /* きろく：アイテム */
+        .interest-item {
+            display: flex; align-items: flex-start;
+            background: #fbfdff; border-radius: 14px;
+            padding: 10px 10px; gap: 10px; margin-bottom: 8px;
+        }
+        .interest-icon {
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0; margin-top: 1px;
+        }
+        .cat-book  { background-color: #ffe9ec; }
+        .cat-video { background-color: #fff6dd; }
+        .cat-music { background-color: #e3eef9; }
+        .cat-other { background-color: #ece6f7; }
+
+        .interest-body { flex: 1; min-width: 0; }
+        .interest-text { font-size: 17px; line-height: 1.4; word-break: break-word; }
+        .interest-meta { font-size: 12px; color: #b9aea2; margin-top: 2px; }
+        .interest-delete-btn {
+            background: none; border: none; color: #d0c8c0;
+            font-size: 14px; cursor: pointer; padding: 4px 2px;
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .interest-empty {
+            text-align: center; padding: 20px 0; color: #c4d4de;
+            font-size: 14px; display: none;
+        }
+
+        /* きろく：カテゴリ選択ボタン */
+        .cat-select-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .cat-select-btn {
+            width: 36px; height: 36px; border-radius: 50%; border: none;
+            font-size: 17px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            background: #f0f7fc; opacity: 0.4;
+            transition: opacity 0.15s, background 0.15s;
+        }
+        .cat-select-btn.active { opacity: 1; }
+        .cat-select-btn.cat-book.active  { background: #ffe9ec; }
+        .cat-select-btn.cat-video.active { background: #fff6dd; }
+        .cat-select-btn.cat-music.active { background: #e3eef9; }
+        .cat-select-btn.cat-other.active { background: #ece6f7; }
+
+        /* 設定画面 */
+        .settings-header {
+            display: flex; align-items: center; gap: 6px; margin-bottom: 14px;
+        }
+        .back-btn {
+            background: none; border: none; color: #a9c4d6;
+            font-size: 20px; cursor: pointer; padding: 2px 8px 2px 0; line-height: 1;
+        }
+        .settings-title {
+            font-family: 'Yomogi', sans-serif;
+            font-size: 15px; font-weight: bold; color: #5f96b3; flex: 1;
+        }
+        .section-label {
+            font-family: 'Yomogi', sans-serif;
+            font-size: 12px; font-weight: bold; color: #b9c3cc;
+            letter-spacing: 0.5px; margin: 14px 0 6px;
+        }
+        #settings-login-prompt {
+            text-align: center; padding: 24px 0;
+        }
+        #settings-login-prompt p {
+            font-size: 14px; color: #9ab4c4; line-height: 1.7; margin: 0 0 14px;
+        }
+
+        /* 曜日セレクター */
+        .day-selector { display: flex; gap: 5px; margin-bottom: 10px; }
+        .day-chip {
+            flex: 1; padding: 7px 2px; border: none; border-radius: 10px;
+            background: #f0f7fc;
+            font-family: 'Yomogi', sans-serif;
+            font-size: 13px; font-weight: bold; color: #a9c4d6; cursor: pointer;
+        }
+        .day-chip.active     { background: #bfe3f5; color: #fff; }
+        .day-chip.sat.active { background: #c9d9f0; color: #fff; }
+        .day-chip.sun.active { background: #f5c4cf; color: #fff; }
+
+        /* テンプレートフォーム */
+        .template-form {
+            background: #f8fcff; border-radius: 14px; padding: 12px;
+        }
+        .template-form-row {
+            display: flex; gap: 6px; align-items: center; margin-bottom: 8px;
+        }
+        .template-input {
+            flex: 1; padding: 9px 10px; border: none;
+            background: #fff; border-radius: 10px;
+            font-size: 15px; color: var(--text-color);
+        }
+        .template-input:focus { outline: none; background: #f3faff; }
+        .time-select {
+            padding: 9px 8px; border: none;
+            background: #fff; border-radius: 10px;
+            font-size: 15px; color: var(--text-color); cursor: pointer;
+        }
+        .template-add-btn {
+            width: 100%; padding: 10px; background: var(--accent-color);
+            color: white; border: none; border-radius: 12px;
+            font-family: 'Yomogi', sans-serif; font-weight: bold;
+            font-size: 15px; cursor: pointer;
+        }
+
+        /* 登録済みテンプレート */
+        .template-item {
+            display: flex; align-items: center;
+            background: #fbfdff; border-radius: 12px;
+            padding: 10px 10px; gap: 8px; margin-bottom: 6px;
+        }
+        .template-days { display: flex; gap: 3px; flex-shrink: 0; }
+        .template-day-dot {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #eef7fc;
+            font-family: 'Yomogi', sans-serif;
+            font-size: 10px; font-weight: bold; color: #c4d4de;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .template-day-dot.active     { background: #bfe3f5; color: #fff; }
+        .template-day-dot.sat.active { background: #c9d9f0; color: #fff; }
+        .template-day-dot.sun.active { background: #f5c4cf; color: #fff; }
+
+        .template-text { flex: 1; font-size: 15px; }
+        .template-time {
+            width: 26px; height: 26px; border-radius: 50%;
+            font-size: 14px; display: flex; align-items: center;
+            justify-content: center; flex-shrink: 0;
+        }
+        .template-delete {
+            background: none; border: none; color: #d0c8c0;
+            font-size: 14px; cursor: pointer; padding: 4px; flex-shrink: 0;
+        }
+
+        /* アカウント */
+        .account-row {
+            display: flex; align-items: center; gap: 10px;
+            background: #fbfdff; border-radius: 12px; padding: 10px 12px;
+        }
+        .account-name { flex: 1; font-size: 14px; color: #8a98a4; }
+        .logout-btn {
+            background: #f4f0ea; color: #b9aea2; border: none;
+            padding: 6px 14px; border-radius: 10px;
+            font-family: 'Yomogi', sans-serif; font-weight: bold;
+            font-size: 13px; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<!-- ===================== メイン画面 ===================== -->
+<div class="app-container" id="main-view">
     <div class="header">
         <div class="page-title">きょうのこと、ちょっとずつ</div>
         <div class="date-display" id="today-date">----年--月--日 (-)</div>
     </div>
 
-    <div class="quick-actions">
-        <button id="morning-clear-btn" onclick="resetAllChecks()">あさのじゅんび</button>
+    <!-- モード切替 -->
+    <div class="mode-tabs">
+        <button class="mode-btn active" id="mode-tasks-btn" onclick="switchMode('tasks')">🐦 やること</button>
+        <button class="mode-btn" id="mode-interests-btn" onclick="switchMode('interests')">🪶 きろく</button>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('all')">すべて</button>
-        <button class="tab-btn" onclick="switchTab('morning')">🌅 あさ</button>
-        <button class="tab-btn" onclick="switchTab('noon')">☀️ ひる</button>
-        <button class="tab-btn" onclick="switchTab('night')">🌙 よる</button>
+    <!-- やることビュー -->
+    <div id="tasks-view">
+        <div class="quick-actions">
+            <button id="morning-clear-btn" onclick="resetToTemplates()">あさのじゅんび</button>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('all')">すべて</button>
+            <button class="tab-btn" onclick="switchTab('morning')">🌅 あさ</button>
+            <button class="tab-btn" onclick="switchTab('noon')">☀️ ひる</button>
+            <button class="tab-btn" onclick="switchTab('night')">🌙 よる</button>
+        </div>
+        <ul class="task-list" id="task-list"></ul>
+        <div class="add-container">
+            <input type="text" id="new-task-input" class="add-input" placeholder="あたらしいこと" onkeypress="handleKeyPress(event)">
+            <button class="add-btn" onclick="addTask()">追加</button>
+        </div>
     </div>
 
-    <ul class="task-list" id="task-list"></ul>
-
-    <div class="add-container">
-        <input type="text" id="new-task-input" class="add-input" placeholder="あたらしいこと" onkeypress="handleKeyPress(event)">
-        <button class="add-btn" onclick="addTask()">追加</button>
+    <!-- きろくビュー -->
+    <div id="interests-view" style="display:none">
+        <div id="login-prompt">
+            <div class="login-icon">🪶</div>
+            <p class="login-desc">きになったことを残しておける場所です。<br>ログインするとずっと保存されます。</p>
+            <button class="login-btn" onclick="signInWithGoogle()">Googleでログイン</button>
+        </div>
+        <div id="interests-content" style="display:none">
+            <div class="interest-cat-filters">
+                <button class="cat-chip active" onclick="filterCat('all', this)">すべて</button>
+                <button class="cat-chip" onclick="filterCat('book', this)">📕 本</button>
+                <button class="cat-chip" onclick="filterCat('video', this)">🎬 動画</button>
+                <button class="cat-chip" onclick="filterCat('music', this)">🎵 音楽</button>
+                <button class="cat-chip" onclick="filterCat('other', this)">💭 その他</button>
+            </div>
+            <ul class="task-list" id="interest-list"></ul>
+            <div class="interest-empty" id="interest-empty">まだ何もありません 🪶</div>
+            <div style="margin-top:12px">
+                <div class="cat-select-row">
+                    <button class="cat-select-btn cat-book"  data-cat="book"  onclick="selectCat(this)">📕</button>
+                    <button class="cat-select-btn cat-video" data-cat="video" onclick="selectCat(this)">🎬</button>
+                    <button class="cat-select-btn cat-music" data-cat="music" onclick="selectCat(this)">🎵</button>
+                    <button class="cat-select-btn cat-other active" data-cat="other" onclick="selectCat(this)">💭</button>
+                </div>
+                <div class="add-container" style="margin-top:0">
+                    <input type="text" id="new-interest-input" class="add-input" placeholder="きになったこと" onkeypress="handleInterestKeyPress(event)">
+                    <button class="add-btn" onclick="addInterest()">追加</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- ===================== フッター ===================== -->
 <div class="footer-bar">
     <button id="music-btn" class="music-link" onclick="toggleMusic()">▶ Cateenを聴く</button>
     <button class="music-link" onclick="exportTasks()">⇩ Export</button>
     <button class="music-link" onclick="document.getElementById('import-file-input').click()">⇧ Import</button>
     <input type="file" id="import-file-input" accept=".txt" style="display:none" onchange="handleImportFile(event)">
+    <button class="music-link" onclick="showSettings()">⚙️</button>
 </div>
 
+<!-- ===================== 設定画面 ===================== -->
+<div class="app-container" id="settings-view" style="display:none">
+    <div class="settings-header">
+        <button class="back-btn" onclick="hideSettings()">←</button>
+        <div class="settings-title">くりかえしの設定</div>
+    </div>
 
+    <!-- 未ログイン時 -->
+    <div id="settings-login-prompt" style="display:none">
+        <p>テンプレートを保存するには<br>ログインが必要です</p>
+        <button class="login-btn" onclick="signInWithGoogle()">Googleでログイン</button>
+    </div>
+
+    <!-- ログイン済み時 -->
+    <div id="template-ui" style="display:none">
+        <div class="section-label">あたらしいくりかえし</div>
+        <div class="template-form">
+            <div class="day-selector">
+                <button class="day-chip sun" data-day="0" onclick="toggleTemplateDay(this)">日</button>
+                <button class="day-chip"     data-day="1" onclick="toggleTemplateDay(this)">月</button>
+                <button class="day-chip"     data-day="2" onclick="toggleTemplateDay(this)">火</button>
+                <button class="day-chip"     data-day="3" onclick="toggleTemplateDay(this)">水</button>
+                <button class="day-chip"     data-day="4" onclick="toggleTemplateDay(this)">木</button>
+                <button class="day-chip"     data-day="5" onclick="toggleTemplateDay(this)">金</button>
+                <button class="day-chip sat" data-day="6" onclick="toggleTemplateDay(this)">土</button>
+            </div>
+            <div class="template-form-row">
+                <input type="text" id="new-template-text" class="template-input" placeholder="やること">
+                <select id="new-template-time" class="time-select">
+                    <option value="morning">🌅</option>
+                    <option value="noon">☀️</option>
+                    <option value="night">🌙</option>
+                </select>
+            </div>
+            <button class="template-add-btn" onclick="addTemplate()">追加する</button>
+        </div>
+
+        <div class="section-label">登録中のくりかえし</div>
+        <ul class="task-list" id="template-list"></ul>
+    </div>
+
+    <div id="settings-account" style="display:none">
+        <div class="section-label">アカウント</div>
+        <div class="account-row">
+            <span class="account-name" id="account-name"></span>
+            <button class="logout-btn" onclick="doSignOut()">ログアウト</button>
+        </div>
+    </div>
+</div>
 
 <script>
-    const TASKS_STORAGE_KEY = 'memoenaga-tasks';
-    const defaultTasks = [
-        { id: 1, text: "ハンカチ　水筒", time: "morning", completed: false, important: false },
-        { id: 2, text: "フロス　はみがき", time: "night", completed: false, important: false },
-        { id: 3, text: "習ったことを３つきく", time: "night", completed: false, important: false }
-    ];
-    let tasks = [];
+    // =============================================
+    // Firebase 初期化
+    // =============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyB6pr5TyK82yNojHJFAC421Nlt1_qcAdl4",
+        authDomain: "memoenaga.firebaseapp.com",
+        projectId: "memoenaga",
+        storageBucket: "memoenaga.firebasestorage.app",
+        messagingSenderId: "1051810699019",
+        appId: "1:1051810699019:web:67450c7c5ef5aa584e740e",
+        measurementId: "G-KKHLPC0DD8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
 
+    // =============================================
+    // 状態変数
+    // =============================================
+    const TASKS_STORAGE_KEY = 'memoenaga-tasks';
+    const TEMPLATE_DATE_KEY = 'memoenaga-template-date';
+
+    const defaultTasks = [
+        { id: 1, text: "ハンカチ　水筒",       time: "morning", completed: false, important: false },
+        { id: 2, text: "フロス　はみがき",       time: "night",   completed: false, important: false },
+        { id: 3, text: "習ったことを３つきく",   time: "night",   completed: false, important: false }
+    ];
+
+    let tasks              = [];
+    let templates          = [];   // Firestoreから読み込む
+    let selectedDays       = [];
+    let interests          = [];
+    let currentCatFilter   = 'all';
+    let currentUser        = null;
+    let unsubscribeInterests = null;
+    let unsubscribeTemplates = null;
+    let currentFilter      = 'all';
+    let audioCtx           = null;
+    let sortableInstance   = null;
+    let wakeLock           = null;
+    let dailyTemplatesApplied = false; // 初回自動適用フラグ
+
+    // =============================================
+    // 初期化
+    // =============================================
+    window.onload = function () {
+        setTodayDate();
+        loadTasks();
+        renderTasks();
+        initSortable();
+        enableWakeLock();
+        setupAuth();
+    };
+
+    // =============================================
+    // 日付
+    // =============================================
+    function setTodayDate() {
+        const now   = new Date();
+        const month = now.getMonth() + 1;
+        const date  = now.getDate();
+        const dayEn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()];
+        document.getElementById('today-date').innerText = `${month}がつ${date}にち ${dayEn}.`;
+    }
+
+    // =============================================
+    // Auth
+    // =============================================
+    function setupAuth() {
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            updateAuthUI();
+            if (user) {
+                setupTemplatesListener(user.uid);
+                setupInterestsListener(user.uid);
+                updateSettingsAccount(user);
+            } else {
+                // テンプレートリスナー解除
+                if (unsubscribeTemplates) { unsubscribeTemplates(); unsubscribeTemplates = null; }
+                templates = [];
+                renderTemplates();
+                // きろくリスナー解除
+                if (unsubscribeInterests) { unsubscribeInterests(); unsubscribeInterests = null; }
+                interests = [];
+                renderInterests();
+                updateSettingsAccount(null);
+            }
+        });
+    }
+
+    function updateAuthUI() {
+        // きろくビュー
+        document.getElementById('login-prompt').style.display      = currentUser ? 'none'  : 'block';
+        document.getElementById('interests-content').style.display = currentUser ? 'block' : 'none';
+        // 設定画面
+        document.getElementById('settings-login-prompt').style.display = currentUser ? 'none'  : 'block';
+        document.getElementById('template-ui').style.display           = currentUser ? 'block' : 'none';
+    }
+
+    function signInWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(() => {
+            alert('ログインに失敗しました。もう一度お試しください。');
+        });
+    }
+
+    function doSignOut() {
+        if (confirm('ログアウトしますか？')) auth.signOut();
+    }
+
+    function updateSettingsAccount(user) {
+        const el   = document.getElementById('settings-account');
+        const name = document.getElementById('account-name');
+        if (user) {
+            el.style.display  = 'block';
+            name.textContent  = user.displayName || user.email || '';
+        } else {
+            el.style.display  = 'none';
+        }
+    }
+
+    // =============================================
+    // テンプレート（Firestore）
+    // =============================================
+    function setupTemplatesListener(userId) {
+        if (unsubscribeTemplates) unsubscribeTemplates();
+        unsubscribeTemplates = db
+            .collection('templates').doc(userId).collection('items')
+            .orderBy('createdAt', 'asc')
+            .onSnapshot(snapshot => {
+                templates = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderTemplates();
+                // ログイン後、初回1回だけ今日のテンプレートを自動適用
+                if (!dailyTemplatesApplied) {
+                    dailyTemplatesApplied = true;
+                    applyDailyTemplates();
+                }
+            }, () => {});
+    }
+
+    async function addTemplate() {
+        const text = document.getElementById('new-template-text').value.trim();
+        if (!text)               { alert('やることを入力してください'); return; }
+        if (!selectedDays.length){ alert('曜日を選んでください'); return; }
+        if (!currentUser)        { alert('ログインが必要です'); return; }
+
+        const time = document.getElementById('new-template-time').value;
+        try {
+            await db.collection('templates').doc(currentUser.uid).collection('items').add({
+                text, time,
+                days: [...selectedDays].sort(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            // フォームリセット
+            document.getElementById('new-template-text').value = '';
+            document.getElementById('new-template-time').value = 'morning';
+            selectedDays = [];
+            document.querySelectorAll('.day-selector .day-chip').forEach(c => c.classList.remove('active'));
+        } catch (e) {
+            alert('保存に失敗しました。もう一度お試しください。');
+        }
+    }
+
+    async function deleteTemplate(docId) {
+        if (!currentUser) return;
+        try {
+            await db.collection('templates').doc(currentUser.uid).collection('items').doc(docId).delete();
+        } catch (e) {
+            alert('削除に失敗しました。');
+        }
+    }
+
+    function toggleTemplateDay(btn) {
+        const day = parseInt(btn.dataset.day);
+        btn.classList.toggle('active');
+        if (btn.classList.contains('active')) {
+            if (!selectedDays.includes(day)) selectedDays.push(day);
+        } else {
+            selectedDays = selectedDays.filter(d => d !== day);
+        }
+    }
+
+    function renderTemplates() {
+        const listEl = document.getElementById('template-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        if (!templates.length) {
+            listEl.innerHTML = '<li style="color:#c4d4de;font-size:14px;padding:10px 0;text-align:center;">まだ登録がありません</li>';
+            return;
+        }
+
+        const DAY_LABELS = ['日','月','火','水','木','金','土'];
+        templates.forEach(tmpl => {
+            const li = document.createElement('li');
+            li.className = 'template-item';
+            const timeBg    = tmpl.time === 'morning' ? 'time-morning' : (tmpl.time === 'noon' ? 'time-noon' : 'time-night');
+            const timeEmoji = tmpl.time === 'morning' ? '🌅' : (tmpl.time === 'noon' ? '☀️' : '🌙');
+            const dotsHtml  = DAY_LABELS.map((label, i) => {
+                let cls = 'template-day-dot';
+                if ((tmpl.days || []).includes(i)) cls += ' active';
+                if (i === 0) cls += ' sun';
+                if (i === 6) cls += ' sat';
+                return `<div class="${cls}">${label}</div>`;
+            }).join('');
+            li.innerHTML = `
+                <div class="template-days">${dotsHtml}</div>
+                <span class="template-text">${escapeHtml(tmpl.text)}</span>
+                <span class="template-time ${timeBg}">${timeEmoji}</span>
+                <button class="template-delete" onclick="deleteTemplate('${tmpl.id}')">✕</button>
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    // 今日の曜日に対応するテンプレートをタスクに自動追加（1日1回）
+    function applyDailyTemplates() {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (localStorage.getItem(TEMPLATE_DATE_KEY) === todayStr) return;
+
+        const dow = new Date().getDay();
+        const todayTemplates = templates.filter(t => (t.days || []).includes(dow));
+        if (!todayTemplates.length) {
+            localStorage.setItem(TEMPLATE_DATE_KEY, todayStr);
+            return;
+        }
+
+        todayTemplates.forEach(tmpl => {
+            const exists = tasks.some(t => t.text === tmpl.text && t.time === tmpl.time && t.fromTemplate);
+            if (!exists) {
+                tasks.push({
+                    id: Date.now() + Math.floor(Math.random() * 10000),
+                    text: tmpl.text, time: tmpl.time,
+                    completed: false, important: false, fromTemplate: true
+                });
+            }
+        });
+        saveTasks();
+        renderTasks();
+        localStorage.setItem(TEMPLATE_DATE_KEY, todayStr);
+    }
+
+    // あさのじゅんび：今のタスクをクリアして今日のテンプレートをセット
+    function resetToTemplates() {
+        const dow = new Date().getDay();
+        const todayTemplates = templates.filter(t => (t.days || []).includes(dow));
+        const count = todayTemplates.length;
+
+        const msg = count > 0
+            ? `今のやることをすべて削除して、くりかえしの${count}件をセットします。よいですか？`
+            : '今のやることをすべて削除します。くりかえしのやることは登録されていません。よいですか？';
+
+        if (!confirm(msg)) return;
+
+        tasks = todayTemplates.map(t => ({
+            id: Date.now() + Math.floor(Math.random() * 10000),
+            text: t.text, time: t.time,
+            completed: false, important: false, fromTemplate: true
+        }));
+        localStorage.setItem(TEMPLATE_DATE_KEY, new Date().toISOString().slice(0, 10));
+        saveTasks();
+        renderTasks();
+    }
+
+    // =============================================
+    // きろく（Firestore）
+    // =============================================
+    function setupInterestsListener(userId) {
+        if (unsubscribeInterests) unsubscribeInterests();
+        unsubscribeInterests = db
+            .collection('interests').doc(userId).collection('items')
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(snapshot => {
+                interests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderInterests();
+            }, () => {});
+    }
+
+    function renderInterests() {
+        const listEl  = document.getElementById('interest-list');
+        const emptyEl = document.getElementById('interest-empty');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        const filtered = currentCatFilter === 'all'
+            ? interests
+            : interests.filter(i => i.category === currentCatFilter);
+
+        if (!filtered.length) { emptyEl.style.display = 'block'; return; }
+        emptyEl.style.display = 'none';
+
+        filtered.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'interest-item';
+            const { icon, bgClass } = getCatInfo(item.category);
+            const dateStr = item.createdAt ? formatInterestDate(item.createdAt.toDate()) : '';
+            li.innerHTML = `
+                <div class="interest-icon ${bgClass}">${icon}</div>
+                <div class="interest-body">
+                    <div class="interest-text">${escapeHtml(item.text)}</div>
+                    ${dateStr ? `<div class="interest-meta">${dateStr}</div>` : ''}
+                </div>
+                <button class="interest-delete-btn" onclick="deleteInterest('${item.id}')">✕</button>
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    async function addInterest() {
+        const input = document.getElementById('new-interest-input');
+        const text  = input.value.trim();
+        if (!text || !currentUser) return;
+        const activeCat = document.querySelector('.cat-select-btn.active');
+        const cat = activeCat ? activeCat.dataset.cat : 'other';
+        try {
+            await db.collection('interests').doc(currentUser.uid).collection('items').add({
+                text, category: cat,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = '';
+        } catch (e) {
+            alert('保存に失敗しました。もう一度お試しください。');
+        }
+    }
+
+    async function deleteInterest(docId) {
+        if (!currentUser) return;
+        try {
+            await db.collection('interests').doc(currentUser.uid).collection('items').doc(docId).delete();
+        } catch (e) {
+            alert('削除に失敗しました。');
+        }
+    }
+
+    function filterCat(cat, btn) {
+        currentCatFilter = cat;
+        document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderInterests();
+    }
+
+    function selectCat(btn) {
+        document.querySelectorAll('.cat-select-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function handleInterestKeyPress(e) {
+        if (e.key === 'Enter') { e.preventDefault(); addInterest(); }
+    }
+
+    function getCatInfo(cat) {
+        return ({
+            book:  { icon: '📕', bgClass: 'cat-book'  },
+            video: { icon: '🎬', bgClass: 'cat-video' },
+            music: { icon: '🎵', bgClass: 'cat-music' },
+            other: { icon: '💭', bgClass: 'cat-other' }
+        })[cat] || { icon: '💭', bgClass: 'cat-other' };
+    }
+
+    function formatInterestDate(date) {
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+
+    // =============================================
+    // UI切替
+    // =============================================
+    function switchMode(mode) {
+        document.getElementById('mode-tasks-btn').classList.toggle('active', mode === 'tasks');
+        document.getElementById('mode-interests-btn').classList.toggle('active', mode === 'interests');
+        document.getElementById('tasks-view').style.display     = mode === 'tasks'     ? 'block' : 'none';
+        document.getElementById('interests-view').style.display = mode === 'interests' ? 'block' : 'none';
+    }
+
+    function showSettings() {
+        document.getElementById('main-view').style.display     = 'none';
+        document.querySelector('.footer-bar').style.display    = 'none';
+        document.getElementById('settings-view').style.display = 'block';
+    }
+
+    function hideSettings() {
+        document.getElementById('settings-view').style.display = 'none';
+        document.getElementById('main-view').style.display     = 'block';
+        document.querySelector('.footer-bar').style.display    = 'flex';
+    }
+
+    // =============================================
+    // タスク管理
+    // =============================================
     function saveTasks() {
         try { localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks)); } catch (e) {}
     }
@@ -379,120 +876,64 @@
         try {
             const saved = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY));
             tasks = (saved && Array.isArray(saved)) ? saved : defaultTasks;
-        } catch (e) {
-            tasks = defaultTasks;
-        }
-    }
-
-    let currentFilter = 'all';
-    let isMusicPlaying = false;
-    let audioCtx = null;
-    let sortableInstance = null;
-
-    window.onload = function() {
-        setTodayDate();
-        checkTimeAndSetSpeech();
-        loadTasks();
-        renderTasks();
-        initSortable();
-        enableWakeLock();
-    };
-
-    function setTodayDate() {
-        const now = new Date();
-        const month = now.getMonth() + 1;
-        const date = now.getDate();
-        const dayOfWeekEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
-        document.getElementById('today-date').innerText = `${month}がつ${date}にち ${dayOfWeekEn}.`;
-    }
-
-    function checkTimeAndSetSpeech() {
-        const hour = new Date().getHours();
-        const morningBtn = document.getElementById('morning-clear-btn');
-
-        if (hour >= 5 && hour < 10) {
-            morningBtn.style.display = "block";
-        } else {
-            morningBtn.style.display = "none";
-        }
+        } catch (e) { tasks = defaultTasks; }
     }
 
     function initSortable() {
         const el = document.getElementById('task-list');
         sortableInstance = Sortable.create(el, {
-            animation: 200,
-            ghostClass: 'sortable-ghost',
-            delay: 150,
-            delayOnTouchOnly: true,
-            touchStartThreshold: 5,
-            onEnd: function (evt) {
-                const items = el.querySelectorAll('.task-item');
-                let newTasks = [];
-                let unrenderedTasks = tasks.filter(t => {
-                    if (currentFilter === 'all') return false;
-                    return t.time !== currentFilter;
-                });
+            animation: 200, ghostClass: 'sortable-ghost',
+            delay: 150, delayOnTouchOnly: true, touchStartThreshold: 5,
+            onEnd: function () {
+                const items      = el.querySelectorAll('.task-item');
+                const unrendered = tasks.filter(t => currentFilter !== 'all' && t.time !== currentFilter);
+                const newTasks   = [];
                 items.forEach(item => {
-                    const id = parseInt(item.getAttribute('data-id'));
-                    const found = tasks.find(t => t.id === id);
+                    const found = tasks.find(t => t.id === parseInt(item.getAttribute('data-id')));
                     if (found) newTasks.push(found);
                 });
-                tasks = [...newTasks, ...unrenderedTasks];
+                tasks = [...newTasks, ...unrendered];
                 saveTasks();
             }
         });
     }
 
     function initSwipe(contentEl) {
-        let startX = 0;
-        let currentX = 0;
-        let dragging = false;
-        const OPEN_X = -76;
-        const DELETE_THRESHOLD = -120;
+        let startX = 0, currentX = 0, dragging = false;
+        const OPEN_X = -76, DELETE_THRESHOLD = -120;
 
         function closeOthers() {
             document.querySelectorAll('.task-item-content').forEach(el => {
-                if (el !== contentEl) {
-                    el.style.transform = 'translateX(0px)';
-                    el.dataset.open = '0';
-                }
+                if (el !== contentEl) { el.style.transform = 'translateX(0px)'; el.dataset.open = '0'; }
             });
         }
 
-        contentEl.addEventListener('touchstart', (e) => {
+        contentEl.addEventListener('touchstart', e => {
             startX = e.touches[0].clientX;
             currentX = contentEl.dataset.open === '1' ? OPEN_X : 0;
-            dragging = true;
-            contentEl.style.transition = 'none';
+            dragging = true; contentEl.style.transition = 'none';
         }, { passive: true });
 
-        contentEl.addEventListener('touchmove', (e) => {
+        contentEl.addEventListener('touchmove', e => {
             if (!dragging) return;
-            const deltaX = e.touches[0].clientX - startX;
-            let newX = currentX + deltaX;
-            if (newX > 0) newX = 0;
-            if (newX < DELETE_THRESHOLD) newX = DELETE_THRESHOLD;
+            let newX = currentX + (e.touches[0].clientX - startX);
+            newX = Math.min(0, Math.max(DELETE_THRESHOLD, newX));
             contentEl.style.transform = `translateX(${newX}px)`;
         }, { passive: true });
 
-        contentEl.addEventListener('touchend', (e) => {
+        contentEl.addEventListener('touchend', e => {
             if (!dragging) return;
-            dragging = false;
-            contentEl.style.transition = 'transform 0.2s ease';
-            const deltaX = e.changedTouches[0].clientX - startX;
-            const finalX = currentX + deltaX;
-
+            dragging = false; contentEl.style.transition = 'transform 0.2s ease';
+            const finalX = currentX + (e.changedTouches[0].clientX - startX);
             if (finalX < DELETE_THRESHOLD + 20) {
                 const id = parseInt(contentEl.closest('.task-item').getAttribute('data-id'));
-                contentEl.style.transform = `translateX(-100%)`;
+                contentEl.style.transform = 'translateX(-100%)';
                 setTimeout(() => deleteTask(id), 180);
             } else if (finalX < OPEN_X / 2) {
                 contentEl.style.transform = `translateX(${OPEN_X}px)`;
-                contentEl.dataset.open = '1';
-                closeOthers();
+                contentEl.dataset.open = '1'; closeOthers();
             } else {
-                contentEl.style.transform = 'translateX(0px)';
-                contentEl.dataset.open = '0';
+                contentEl.style.transform = 'translateX(0px)'; contentEl.dataset.open = '0';
             }
         });
     }
@@ -500,38 +941,32 @@
     function renderTasks() {
         const listEl = document.getElementById('task-list');
         listEl.innerHTML = '';
+        const filtered = currentFilter === 'all' ? tasks : tasks.filter(t => t.time === currentFilter);
 
-        let filteredTasks = tasks;
-        if (currentFilter !== 'all') {
-            filteredTasks = tasks.filter(t => t.time === currentFilter);
-        }
-
-        filteredTasks.forEach((task) => {
+        filtered.forEach(task => {
             const li = document.createElement('li');
             li.className = 'task-item';
             li.setAttribute('data-id', task.id);
-            
-            let timeText = "🌅";
-            let timeClass = "time-morning";
-            if (task.time === "noon") { timeText = "☀️"; timeClass = "time-noon"; }
-            if (task.time === "night") { timeText = "🌙"; timeClass = "time-night"; }
-
+            const timeText  = task.time === 'noon' ? '☀️' : (task.time === 'night' ? '🌙' : '🌅');
+            const timeClass = task.time === 'noon' ? 'time-noon' : (task.time === 'night' ? 'time-night' : 'time-morning');
+            const tmplClass = task.fromTemplate ? 'from-template' : '';
             li.innerHTML = `
                 <div class="delete-zone">
                     <button class="delete-zone-btn" onclick="deleteTask(${task.id})">🗑️</button>
                 </div>
-                <div class="task-item-content ${task.important ? 'important' : ''} ${task.completed ? 'completed' : ''}">
+                <div class="task-item-content ${task.important ? 'important' : ''} ${task.completed ? 'completed' : ''} ${tmplClass}">
                     <div class="checkbox-wrapper">
                         <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleComplete(${task.id})">
                     </div>
-                    <button class="important-dot-btn ${task.important ? 'active' : ''}" onclick="toggleImportant(${task.id})"><span class="important-dot"></span></button>
+                    <button class="important-dot-btn ${task.important ? 'active' : ''}" onclick="toggleImportant(${task.id})">
+                        <span class="important-dot"></span>
+                    </button>
                     <textarea class="task-text" rows="1" oninput="autoResize(this)" onchange="updateText(${task.id}, this.value)">${task.text}</textarea>
                     <span class="time-badge ${timeClass}" onclick="cycleTime(${task.id})">${timeText}</span>
                 </div>
             `;
             listEl.appendChild(li);
-            const textarea = li.querySelector('.task-text');
-            autoResize(textarea);
+            autoResize(li.querySelector('.task-text'));
             initSwipe(li.querySelector('.task-item-content'));
         });
     }
@@ -543,79 +978,45 @@
 
     function addTask() {
         const input = document.getElementById('new-task-input');
-        const text = input.value.trim();
+        const text  = input.value.trim();
         if (!text) return;
-
-        const newTask = {
-            id: Date.now(),
-            text: text,
+        tasks.push({
+            id: Date.now(), text,
             time: currentFilter === 'all' ? 'morning' : currentFilter,
-            completed: false,
-            important: false
-        };
-
-        tasks.push(newTask);
-        input.value = '';
-        saveTasks();
-        renderTasks();
+            completed: false, important: false
+        });
+        input.value = ''; saveTasks(); renderTasks();
     }
 
     function handleKeyPress(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addTask();
-        }
+        if (e.key === 'Enter') { e.preventDefault(); addTask(); }
     }
 
     function toggleComplete(id) {
-        const task = tasks.find(t => t.id === id);
-        if (task) {
-            task.completed = !task.completed;
-            if (task.completed) playCuteSound();
-            saveTasks();
-            renderTasks();
-        }
+        const t = tasks.find(t => t.id === id);
+        if (t) { t.completed = !t.completed; if (t.completed) playCuteSound(); saveTasks(); renderTasks(); }
     }
 
     function toggleImportant(id) {
-        const task = tasks.find(t => t.id === id);
-        if (task) {
-            task.important = !task.important;
-            saveTasks();
-            renderTasks();
-        }
-    }
-
-    function resetAllChecks() {
-        tasks.forEach(t => t.completed = false);
-        saveTasks();
-        alert("すべてのチェックを外しました！");
-        renderTasks();
+        const t = tasks.find(t => t.id === id);
+        if (t) { t.important = !t.important; saveTasks(); renderTasks(); }
     }
 
     function cycleTime(id) {
-        const task = tasks.find(t => t.id === id);
-        if (task) {
-            if (task.time === "morning") task.time = "noon";
-            else if (task.time === "noon") task.time = "night";
-            else task.time = "morning";
-            saveTasks();
-            renderTasks();
+        const t = tasks.find(t => t.id === id);
+        if (t) {
+            t.time = t.time === 'morning' ? 'noon' : (t.time === 'noon' ? 'night' : 'morning');
+            saveTasks(); renderTasks();
         }
     }
 
     function updateText(id, newText) {
-        const task = tasks.find(t => t.id === id);
-        if (task) {
-            task.text = newText;
-            saveTasks();
-        }
+        const t = tasks.find(t => t.id === id);
+        if (t) { t.text = newText; saveTasks(); }
     }
 
     function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        saveTasks();
-        renderTasks();
+        tasks = tasks.filter(t => t.id !== id); saveTasks(); renderTasks();
     }
 
     function switchTab(tabName) {
@@ -625,115 +1026,100 @@
         renderTasks();
     }
 
+    // =============================================
+    // サウンド・音楽
+    // =============================================
     function playCuteSound() {
         try {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
-            osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08); 
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.08);
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.25);
-        } catch(e) {}
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+        } catch (e) {}
     }
 
     function toggleMusic() {
-        window.open("https://music.youtube.com/search?q=" + encodeURIComponent("Cateen"), "_blank");
+        window.open('https://music.youtube.com/search?q=' + encodeURIComponent('Cateen'), '_blank');
     }
 
-    let wakeLock = null;
+    // =============================================
+    // Wake Lock
+    // =============================================
     async function enableWakeLock() {
         if ('wakeLock' in navigator) {
-            try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
+            try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
         }
     }
 
-    // PWA: Service Workerの登録
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').catch((err) => {
-                console.warn('Service Worker registration failed:', err);
-            });
-        });
-    }
-
-    // --- Export ---
+    // =============================================
+    // Export / Import
+    // =============================================
     function taskToLine(t) {
-        const status = t.completed ? 'x' : ' ';
+        const status    = t.completed ? 'x' : ' ';
         const important = t.important ? '★' : ' ';
-        const timeEmoji = t.time === 'morning' ? '🌅' : (t.time === 'noon' ? '☀️' : '🌙');
-        return `[${status}]${important}${timeEmoji} ${t.text}`;
+        const emoji     = t.time === 'noon' ? '☀️' : (t.time === 'night' ? '🌙' : '🌅');
+        return `[${status}]${important}${emoji} ${t.text}`;
     }
 
     function exportTasks() {
         const text = tasks.map(taskToLine).join('\n');
-
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).catch(() => {});
-        }
-
+        if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
         const blob = new Blob([text], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const today = new Date().toISOString().slice(0, 10);
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
         a.href = url;
-        a.download = `memoenaga-${today}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        alert("コピー＆書き出し、できました📋");
+        a.download = `memoenaga-${new Date().toISOString().slice(0, 10)}.txt`;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+        alert('コピー＆書き出し、できました📋');
     }
 
-    // --- Import ---
     function parseLine(line) {
         const match = line.match(/^\[([ x])\]\s*(★?)\s*([🌅☀️🌙])\s*(.+)$/u);
         if (!match) return null;
-        const [, status, important, timeEmoji, text] = match;
-        let time = 'morning';
-        if (timeEmoji === '☀️') time = 'noon';
-        if (timeEmoji === '🌙') time = 'night';
+        const [, status, important, emoji, text] = match;
         return {
             id: Date.now() + Math.floor(Math.random() * 1000),
             text: text.trim(),
-            time: time,
-            completed: status === 'x',
-            important: important === '★'
+            time: emoji === '☀️' ? 'noon' : (emoji === '🌙' ? 'night' : 'morning'),
+            completed: status === 'x', important: important === '★'
         };
     }
 
     function handleImportFile(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function(e) {
-            const lines = e.target.result.split('\n').map(l => l.trim()).filter(l => l);
-            const importedTasks = lines.map(parseLine).filter(t => t !== null);
-
-            if (importedTasks.length === 0) {
-                alert("読み取れるタスクが見つかりませんでした");
-                return;
-            }
-
-            const replace = confirm(`${importedTasks.length}件のタスクが見つかりました。\n\n「OK」= 今のタスクを全部消して置き換える（復元・引っ越し用）\n「キャンセル」= 今のタスクは残して追加する`);
+        reader.onload = function (e) {
+            const imported = e.target.result.split('\n').map(l => l.trim()).filter(l => l)
+                .map(parseLine).filter(t => t !== null);
+            if (!imported.length) { alert('読み取れるタスクが見つかりませんでした'); return; }
+            const replace = confirm(`${imported.length}件のタスクが見つかりました。\n\n「OK」= 今のタスクを全部消して置き換える\n「キャンセル」= 今のタスクは残して追加する`);
             if (replace) {
-                if (!confirm("本当に今のタスクを全部消しますか？この操作は戻せません。")) return;
-                tasks = importedTasks;
+                if (!confirm('本当に今のタスクを全部消しますか？この操作は戻せません。')) return;
+                tasks = imported;
             } else {
-                tasks = [...tasks, ...importedTasks];
+                tasks = [...tasks, ...imported];
             }
-            saveTasks();
-            renderTasks();
+            saveTasks(); renderTasks();
         };
         reader.readAsText(file);
         event.target.value = '';
+    }
+
+    // =============================================
+    // ユーティリティ
+    // =============================================
+    function escapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
     }
 </script>
 </body>
